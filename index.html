@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>XRPSlots - Arcade XRPL Deluxe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
+      color: #e5e7eb;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 520px;
+      padding: 24px;
+      border-radius: 24px;
+      background: linear-gradient(145deg, #020617, #020617, #020617);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(148, 163, 184, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(56, 189, 248, 0.10), transparent 60%),
+        radial-gradient(circle at 100% 20%, rgba(52, 211, 153, 0.10), transparent 60%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .app-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0%, #38bdf8, #22c55e 55%, #020617 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 0 20px rgba(56, 189, 248, 0.7);
+      font-weight: 800;
+      color: #0b1120;
+      font-size: 16px;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+
+    .balance-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      backdrop-filter: blur(8px);
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.8));
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #e5e7eb;
+    }
+
+    .balance-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #22c55e, #16a34a);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+    }
+
+    .machine {
+      margin-top: 10px;
+      border-radius: 18px;
+      padding: 18px 14px 16px;
+      background: radial-gradient(circle at 0 0, #0f172a, #020617 60%, #000 120%);
+      box-shadow:
+        inset 0 0 0 1px rgba(148, 163, 184, 0.1),
+        0 12px 30px rgba(0, 0, 0, 0.7);
+      position: relative;
+    }
+
+    .machine-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .machine-header span strong {
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .reels-wrapper {
+      border-radius: 14px;
+      padding: 8px;
+      background: linear-gradient(145deg, #020617, #020617);
+      box-shadow:
+        inset 0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 0 0 1px rgba(148, 163, 184, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reels {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .reel {
+      border-radius: 12px;
+      background: radial-gradient(circle at 0 0, #111827, #020617 70%);
+      box-shadow:
+        inset 0 0 0 1px rgba(55, 65, 81, 0.9),
+        0 10px 18px rgba(15, 23, 42, 0.9);
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .reel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(15, 23, 42, 0.8) 0,
+        transparent 30%,
+        transparent 70%,
+        rgba(15, 23, 42, 0.9) 100%);
+      pointer-events: none;
+    }
+
+    .symbol-slot {
+      font-size: 34px;
+      filter: drop-shadow(0 0 12px rgba(252, 211, 77, 0.5));
+      transform: translateY(0);
+      transition: transform 0.18s ease-out;
+    }
+
+    .reel.spinning .symbol-slot {
+      animation: reelSpin 0.18s linear infinite;
+    }
+
+    @keyframes reelSpin {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(16px);
+      }
+    }
+
+    .spinner-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 32px;
+    }
+
+    .gif-wrapper {
+      width: 80px;
+      height: 32px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.2), rgba(15, 23, 42, 0.95));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+
+    #spinnerGif {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .status {
+      flex: 1;
+      font-size: 12px;
+      color: #9ca3af;
+      padding-left: 4px;
+    }
+
+    .status strong {
+      color: #fcd34d;
+      font-weight: 600;
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .stake-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .stake-info span strong {
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .wallet-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .wallet-field label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    .wallet-field input {
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.8);
+      background: radial-gradient(circle at 0 0, #020617, #020617);
+      color: #e5e7eb;
+      font-size: 11px;
+      outline: none;
+    }
+
+    .wallet-field input::placeholder {
+      color: #4b5563;
+    }
+
+    #spinButton {
+      flex-shrink: 0;
+      padding: 10px 24px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: radial-gradient(circle at 0 0, #22c55e, #16a34a 50%, #166534 100%);
+      color: #022c22;
+      box-shadow:
+        0 0 0 1px rgba(6, 95, 70, 0.7),
+        0 14px 24px rgba(22, 163, 74, 0.6);
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.08s ease-out;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #spinButton:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+      box-shadow:
+        0 0 0 1px rgba(6, 95, 70, 0.7),
+        0 18px 30px rgba(22, 163, 74, 0.8);
+    }
+
+    #spinButton:active:not(:disabled) {
+      transform: translateY(1px);
+      box-shadow:
+        0 0 0 1px rgba(6, 95, 70, 0.8),
+        0 8px 14px rgba(22, 163, 74, 0.9);
+    }
+
+    #spinButton:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow:
+        0 0 0 1px rgba(31, 41, 55, 0.9),
+        0 10px 18px rgba(15, 23, 42, 0.9);
+      background: radial-gradient(circle at 0 0, #6b7280, #374151);
+      color: #e5e7eb;
+    }
+
+    .light-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #fbbf24, #f97316);
+      box-shadow: 0 0 12px rgba(253, 224, 71, 0.8);
+    }
+
+    @media (max-width: 520px) {
+      .app {
+        margin: 14px;
+        padding: 18px;
+      }
+      .reel {
+        height: 70px;
+      }
+      .brand-title {
+        font-size: 18px;
+      }
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #spinButton {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="app-inner">
+      <header class="brand">
+        <div class="brand-left">
+          <div class="brand-logo">X</div>
+          <div class="brand-text">
+            <div class="brand-title">XRPSlots</div>
+            <div class="brand-sub">Arcade XRPL Deluxe • No Real Bets</div>
+          </div>
+        </div>
+        <div class="balance-pill">
+          <span class="balance-dot"></span>
+          <span id="balanceLabel">Demo: 1,000.00 XRP</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="machine">
+          <div class="machine-header">
+            <span>Lines: <strong>1</strong></span>
+            <span>Symbol Match: <strong>3 = Win</strong></span>
+          </div>
+
+          <div class="reels-wrapper">
+            <div class="reels">
+              <div class="reel" id="reel1">
+                <div class="symbol-slot" id="symbol1">💎</div>
+              </div>
+              <div class="reel" id="reel2">
+                <div class="symbol-slot" id="symbol2">💎</div>
+              </div>
+              <div class="reel" id="reel3">
+                <div class="symbol-slot" id="symbol3">💎</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="spinner-row">
+            <div class="gif-wrapper">
+              <img id="spinnerGif" src="spin.gif" alt="Spinning reels" class="hidden" />
+            </div>
+            <div class="status" id="statusText">
+              Hit <strong>Spin</strong> to play XRPSlots demo.
+            </div>
+          </div>
+        </section>
+
+        <section class="controls">
+          <div class="stake-info">
+            <span>Stake per spin: <strong id="stakeLabel">10.00 XRP</strong></span>
+            <span>Payout (3 match): <strong>+50 XRP</strong></span>
+            <div class="wallet-field">
+              <label for="walletInput">XRPL Wallet (Demo Hook)</label>
+              <input id="walletInput" type="text" placeholder="rXXXXXXXXXXXXXXXXXXXXXXXX (optional)" />
+            </div>
+          </div>
+          <button id="spinButton">
+            <span class="light-dot"></span>
+            Spin
+          </button>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Audio assets -->
+  <audio id="spinSound" src="spin_arcade.wav" preload="auto"></audio>
+  <audio id="winSound" src="win_arcade.wav" preload="auto"></audio>
+  <audio id="loseSound" src="lose_arcade.wav" preload="auto"></audio>
+  <audio id="buttonClickSound" src="button_click.wav" preload="auto"></audio>
+  <audio id="coinSpraySound" src="coin_spray.wav" preload="auto"></audio>
+  <audio id="nearMissSound" src="near_miss.wav" preload="auto"></audio>
+  <audio id="ambientSound" src="ambient_casino.wav" preload="auto" loop></audio>
+  <audio id="reelStopSound" src="reel_stop.wav" preload="auto"></audio>
+  <audio id="jackpotFanfareSound" src="jackpot_fanfare.wav" preload="auto"></audio>
+  <audio id="lowBalanceSound" src="low_balance.wav" preload="auto"></audio>
+  <audio id="errorSound" src="error_beep.wav" preload="auto"></audio>
+
+  <script>
+    (function () {
+      const symbols = ['🍒', '💎', '7️⃣', '🍋', '⭐', '🪙', '🧿'];
+      const reels = [
+        document.getElementById('reel1'),
+        document.getElementById('reel2'),
+        document.getElementById('reel3')
+      ];
+      const symbolSlots = [
+        document.getElementById('symbol1'),
+        document.getElementById('symbol2'),
+        document.getElementById('symbol3')
+      ];
+      const spinnerGif = document.getElementById('spinnerGif');
+      const statusText = document.getElementById('statusText');
+      const spinButton = document.getElementById('spinButton');
+      const balanceLabel = document.getElementById('balanceLabel');
+      const stakeLabel = document.getElementById('stakeLabel');
+      const walletInput = document.getElementById('walletInput');
+
+      const spinSound = document.getElementById('spinSound');
+      const winSound = document.getElementById('winSound');
+      const loseSound = document.getElementById('loseSound');
+      const buttonClickSound = document.getElementById('buttonClickSound');
+      const coinSpraySound = document.getElementById('coinSpraySound');
+      const nearMissSound = document.getElementById('nearMissSound');
+      const ambientSound = document.getElementById('ambientSound');
+      const reelStopSound = document.getElementById('reelStopSound');
+      const jackpotFanfareSound = document.getElementById('jackpotFanfareSound');
+      const lowBalanceSound = document.getElementById('lowBalanceSound');
+      const errorSound = document.getElementById('errorSound');
+
+      let balance = 1000;
+      const stake = 10;
+      const winAmount = 50;
+      let ambientStarted = false;
+
+      balanceLabel.textContent = `Demo: ${balance.toFixed(2)} XRP`;
+      stakeLabel.textContent = `${stake.toFixed(2)} XRP`;
+
+      function randomSymbol() {
+        return symbols[Math.floor(Math.random() * symbols.length)];
+      }
+
+      function formatBalance(xrp) {
+        return `${xrp.toFixed(2)} XRP`;
+      }
+
+      function setStatus(message, isWin) {
+        if (isWin) {
+          statusText.innerHTML = message.replace('{amount}', `<strong>${winAmount} XRP</strong>`);
+        } else {
+          statusText.textContent = message;
+        }
+      }
+
+      function stopAllSounds() {
+        [
+          spinSound, winSound, loseSound, buttonClickSound, coinSpraySound,
+          nearMissSound, reelStopSound, jackpotFanfareSound, lowBalanceSound, errorSound
+        ].forEach(s => {
+          try {
+            s.pause();
+            s.currentTime = 0;
+          } catch (e) {}
+        });
+      }
+
+      function startAmbient() {
+        if (ambientStarted) return;
+        ambientStarted = true;
+        try {
+          ambientSound.volume = 0.25;
+        } catch (e) {}
+        try {
+          ambientSound.play().catch(() => {});
+        } catch (e) {}
+      }
+
+      function callXrplHook(isWin) {
+        const wallet = (walletInput.value || '').trim();
+        if (!wallet) {
+          console.log('No wallet provided, skipping XRPL hook.');
+          return;
+        }
+        const payload = {
+          result: isWin ? 'WIN' : 'LOSE',
+          wallet
+        };
+        fetch('/api/xrpl-spin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(data => {
+          console.log('XRPL spin response:', data);
+        })
+        .catch(err => {
+          console.error('XRPL spin error:', err);
+          try {
+            errorSound.currentTime = 0;
+            errorSound.play().catch(() => {});
+          } catch (e) {}
+        });
+      }
+
+      function spin() {
+        if (balance < stake) {
+          setStatus('Demo balance empty. Refresh the page to reset.', false);
+          try {
+            errorSound.currentTime = 0;
+            errorSound.play().catch(() => {});
+          } catch (e) {}
+          return;
+        }
+
+        startAmbient();
+
+        balance -= stake;
+        balanceLabel.textContent = `Demo: ${formatBalance(balance)}`;
+        spinButton.disabled = true;
+        spinnerGif.classList.remove('hidden');
+        reels.forEach(reel => reel.classList.add('spinning'));
+        setStatus('Spinning reels...', false);
+
+        stopAllSounds();
+        try {
+          buttonClickSound.currentTime = 0;
+          buttonClickSound.play().catch(() => {});
+        } catch (e) {}
+
+        try {
+          spinSound.currentTime = 0;
+          spinSound.play().catch(() => {});
+        } catch (e) {}
+
+        symbolSlots.forEach(slot => {
+          slot.textContent = randomSymbol();
+        });
+
+        const spinDuration = 1400;
+        setTimeout(() => {
+          const finalSymbols = symbolSlots.map(() => randomSymbol());
+          finalSymbols.forEach((sym, idx) => {
+            symbolSlots[idx].textContent = sym;
+          });
+
+          reels.forEach(reel => reel.classList.remove('spinning'));
+          spinnerGif.classList.add('hidden');
+
+          stopAllSounds();
+
+          // play reel stop tick
+          try {
+            reelStopSound.currentTime = 0;
+            reelStopSound.play().catch(() => {});
+          } catch (e) {}
+
+          const isWin = finalSymbols[0] === finalSymbols[1] && finalSymbols[1] === finalSymbols[2];
+          const isJackpot = isWin && finalSymbols[0] === '7️⃣';
+          const isNearMiss =
+            !isWin &&
+            (
+              (finalSymbols[0] === finalSymbols[1]) ||
+              (finalSymbols[1] === finalSymbols[2]) ||
+              (finalSymbols[0] === finalSymbols[2])
+            );
+
+          if (isWin) {
+            balance += winAmount;
+            balanceLabel.textContent = `Demo: ${formatBalance(balance)}`;
+            setStatus(isJackpot ? 'MEGA JACKPOT! Triple 7s. You win {amount}!' : 'JACKPOT! All three match. You win {amount}!', true);
+            try {
+              winSound.currentTime = 0;
+              winSound.play().catch(() => {});
+              coinSpraySound.currentTime = 0;
+              coinSpraySound.play().catch(() => {});
+              if (isJackpot) {
+                jackpotFanfareSound.currentTime = 0;
+                jackpotFanfareSound.play().catch(() => {});
+              }
+            } catch (e) {}
+          } else {
+            if (isNearMiss) {
+              setStatus('So close! Near miss on the line.', false);
+              try {
+                nearMissSound.currentTime = 0;
+                nearMissSound.play().catch(() => {});
+              } catch (e) {}
+            } else {
+              setStatus('No match this time. Try again.', false);
+              try {
+                loseSound.currentTime = 0;
+                loseSound.play().catch(() => {});
+              } catch (e) {}
+            }
+          }
+
+          // Low balance alert (if no win)
+          if (!isWin && balance > 0 && balance <= stake * 2) {
+            try {
+              lowBalanceSound.currentTime = 0;
+              lowBalanceSound.play().catch(() => {});
+            } catch (e) {}
+          }
+
+          // XRPL payment hook
+          callXrplHook(isWin);
+
+          spinButton.disabled = false;
+        }, spinDuration);
+      }
+
+      spinButton.addEventListener('click', spin);
+    })();
+  </script>
+</body>
+</html>
