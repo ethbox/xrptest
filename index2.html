@@ -1,0 +1,2129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>XRP Slots — Neon Vault (Offline Prototype)</title>
+  <style>
+    :root{
+      --bg:#06070b;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.10);
+      --stroke:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --good:rgba(182,255,178,.92);
+      --warn:rgba(255,215,128,.92);
+      --bad:rgba(255,122,122,.92);
+      --glow:rgba(127,227,255,.55);
+      --shadow:rgba(0,0,0,.60);
+      --r:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 70% 20%, rgba(127,227,255,.12), transparent 60%),
+        radial-gradient(900px 700px at 20% 70%, rgba(182,255,178,.10), transparent 60%),
+        radial-gradient(800px 520px at 50% 120%, rgba(255,122,122,.10), transparent 60%),
+        var(--bg);
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:22px;
+      overflow-x:hidden;
+    }
+    .app{
+      width:min(1350px, 100%);
+      display:grid;
+      grid-template-columns: 470px 1fr;
+      gap:16px;
+    }
+    @media (max-width: 1060px){ .app{ grid-template-columns: 1fr; } }
+
+    .card{
+      background:linear-gradient(180deg, var(--panel), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius:var(--r);
+      box-shadow:0 18px 60px var(--shadow);
+      overflow:hidden;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:16px 18px;
+      background:rgba(255,255,255,.03);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .brand{ display:flex; align-items:center; gap:10px; }
+    .logo{
+      width:38px; height:38px; border-radius:14px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(127,227,255,.95), rgba(127,227,255,.14) 60%, rgba(255,255,255,.05) 78%),
+        rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.14);
+      position:relative;
+      box-shadow:0 0 0 1px rgba(0,0,0,.22) inset;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset:9px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.22);
+      transform:rotate(12deg);
+    }
+    h1{ margin:0; font-size:16px; letter-spacing:.4px; }
+    .sub{ margin-top:2px; font-size:12px; color:var(--muted); line-height:1.25; }
+    .pill{
+      display:flex; gap:8px; align-items:center;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      color:rgba(255,255,255,.85);
+      font-size:12px;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .dot{ width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 18px rgba(182,255,178,.55); }
+    .dot.red{ background:var(--bad); box-shadow:0 0 18px rgba(255,122,122,.5); }
+
+    .content{ padding:16px 18px 18px; display:grid; gap:14px; }
+    .panel{
+      padding:14px;
+      border-radius:18px;
+      background:linear-gradient(180deg, var(--panel2), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.10);
+      display:grid;
+      gap:10px;
+    }
+    .panel h2{ margin:0; font-size:13px; letter-spacing:.25px; }
+    .panel p{ margin:0; font-size:12px; color:var(--muted); line-height:1.35; }
+
+    .row2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 1060px){ .row2{ grid-template-columns: 1fr; } }
+
+    label{
+      font-size:11px;
+      color:var(--muted);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    input, select{
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+      font-size:14px;
+    }
+    input[type="range"]{ padding:0; height:34px; }
+    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    button{
+      border:0;
+      border-radius:16px;
+      padding:12px 14px;
+      font-weight:950;
+      letter-spacing:.35px;
+      cursor:pointer;
+      user-select:none;
+      color:rgba(8,10,14,.92);
+      background:linear-gradient(180deg, rgba(127,227,255,.98), rgba(127,227,255,.70));
+      box-shadow:0 16px 44px rgba(127,227,255,.16);
+      transform:translateZ(0);
+    }
+    button:active{ transform:translateY(1px); }
+    button[disabled]{ opacity:.6; cursor:not-allowed; transform:none; }
+    .secondary{
+      background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.08));
+      color:rgba(255,255,255,.90);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:none;
+    }
+    .super{
+      background:linear-gradient(180deg, rgba(182,255,178,.98), rgba(182,255,178,.70));
+      box-shadow:0 18px 50px rgba(182,255,178,.16);
+      color:rgba(8,10,14,.92);
+    }
+    .danger{
+      background:linear-gradient(180deg, rgba(255,122,122,.98), rgba(255,122,122,.70));
+      box-shadow:0 18px 50px rgba(255,122,122,.14);
+      color:rgba(8,10,14,.92);
+    }
+    .tiny{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    .kbd{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      font-size:12px;
+      color:rgba(255,255,255,.84);
+      user-select:none;
+    }
+
+    .stage{
+      padding:0;
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+    }
+    .canvasWrap{
+      padding:14px;
+      display:grid;
+      place-items:center;
+      background:rgba(0,0,0,.16);
+      position:relative;
+    }
+    canvas{
+      width:100%;
+      max-width:1180px;
+      height:auto;
+      aspect-ratio: 16/10;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background:#000;
+      box-shadow:
+        0 24px 90px rgba(0,0,0,.58),
+        0 0 0 1px rgba(0,0,0,.35) inset;
+    }
+
+    .status{
+      padding:14px 18px;
+      border-top:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.10);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:12px;
+      color:rgba(255,255,255,.84);
+      white-space:pre-wrap;
+      line-height:1.25;
+    }
+
+    /* Lever */
+    .leverWrap{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .lever{
+      width:86px; height:140px;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+      position:relative;
+      overflow:hidden;
+    }
+    .lever:before{
+      content:"";
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      top:14px;
+      width:10px; height:102px;
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.08));
+      box-shadow:0 10px 40px rgba(0,0,0,.45);
+    }
+    .knob{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      top:8px;
+      width:28px; height:28px;
+      border-radius:50%;
+      background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,80,80,.95));
+      box-shadow:0 10px 26px rgba(255,80,80,.25), 0 0 0 1px rgba(0,0,0,.25) inset;
+      transition: transform .18s ease, top .18s ease;
+    }
+    .lever.pulled .knob{ top:104px; transform:translateX(-50%) scale(1.02); }
+
+    .marquee{
+      margin-top:8px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.24);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .marquee b{ color:rgba(255,255,255,.92); }
+  
+    .leverFloat{
+      position:absolute;
+      right:22px;
+      top:170px;
+      width:78px; height:320px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+      box-shadow:0 18px 60px rgba(0,0,0,.50);
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding-top:14px;
+    }
+    .leverFloat:before{
+      content:"";
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      top:22px;
+      width:10px; height:250px;
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.08));
+      box-shadow:0 10px 40px rgba(0,0,0,.45);
+    }
+    .canvasWrap{ position:relative; }
+    .leverFloat.pulled .knob{ top:260px; transform:translateX(-50%) scale(1.02); }
+
+
+    /* Win/Jackpot Overlay */
+    .winOverlay{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      opacity:0;
+      transform:scale(1.02);
+      transition:opacity .18s ease, transform .18s ease;
+    }
+    .winOverlay.show{ opacity:1; transform:scale(1); }
+    .winCard{
+      width:min(720px, 92%);
+      border-radius:26px;
+      border:0;
+      background:transparent;
+      box-shadow:none;
+      position:relative;
+      overflow:visible;
+      display:grid;
+      place-items:center;
+      padding:14px 14px 6px;
+    }
+    .winOverlay:before{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(900px 420px at 50% 45%, rgba(255,215,128,.18), transparent 58%),
+        radial-gradient(900px 420px at 50% 45%, rgba(127,227,255,.12), transparent 60%);
+      opacity:.0;
+      transition:opacity .18s ease;
+      pointer-events:none;
+    }
+    .winOverlay.show:before{ opacity:1; }
+    .winTitle{
+      position:absolute;
+      top:16px; left:50%;
+      transform:translateX(-50%);
+      font-weight:1000;
+      letter-spacing:1.2px;
+      font-size:54px;
+      color:rgba(255,255,255,.95);
+      text-shadow:0 0 28px rgba(127,227,255,.35), 0 0 28px rgba(255,215,128,.25);
+      transform-origin:center;
+      animation:winPop .9s ease both;
+      white-space:nowrap;
+    }
+    .winSub{
+      position:absolute;
+      top:82px; left:50%;
+      transform:translateX(-50%);
+      font-weight:950;
+      font-size:24px;
+      color:rgba(182,255,178,.95);
+      text-shadow:0 0 18px rgba(182,255,178,.25);
+      white-space:nowrap;
+    }
+    .winCanvas{
+      width:min(560px, 86%);
+      height:auto;
+      aspect-ratio: 2 / 1;
+      display:block;
+      margin-top:128px;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,.65)) drop-shadow(0 0 26px rgba(255,215,128,.22));
+      animation:floaty 1.8s ease-in-out infinite;
+    }
+    @keyframes floaty{
+      0%,100%{ transform:translateY(0px); }
+      50%{ transform:translateY(-10px); }
+    }
+    .winCard.jackpot .winTitle{ color:rgba(255,215,128,.98); text-shadow:0 0 30px rgba(255,215,128,.40), 0 0 30px rgba(127,227,255,.25); }
+    .winCard.jackpot .winSub{ color:rgba(255,215,128,.95); }
+    @keyframes winPop{
+      0%{ transform:translateY(-6px) scale(.92); filter:blur(0.4px); opacity:0; }
+      45%{ transform:translateY(0) scale(1.05); opacity:1; }
+      100%{ transform:translateY(0) scale(1.00); opacity:1; }
+    }
+    .screenFlash{
+      position:absolute; inset:0;
+      background:radial-gradient(900px 600px at 50% 50%, rgba(255,215,128,.22), rgba(127,227,255,.10), transparent 65%);
+      opacity:0;
+      pointer-events:none;
+      mix-blend-mode:screen;
+      transition:opacity .12s ease;
+    }
+    .screenFlash.on{ opacity:1; }
+
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>Neon Vault Slots — Offline Prototype</h1>
+            <div class="sub">Premium reel feel • lights & particles • WebAudio SFX • ready to wire XRPL later</div>
+          </div>
+        </div>
+        <div class="pill"><span class="dot"></span> offline</div>
+
+        <div class="winOverlay" id="winOverlay" aria-hidden="true">
+          <div class="winCard" id="winCard">
+            <div class="winTitle" id="winTitle">YOU WIN!</div>
+            <div class="winSub" id="winSub">+0</div>
+            <canvas class="winCanvas" id="winCanvas" width="720" height="360"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="panel">
+          <h2>Bankroll</h2>
+          <div class="row2">
+            <div>
+              <label>Balance <span class="mono" id="balRead">—</span></label>
+              <input id="balance" type="number" min="0" step="1" value="1000"/>
+            </div>
+            <div>
+              <label>Jackpot <span class="mono" id="jackRead">—</span></label>
+              <input id="jackpot" type="number" min="0" step="1" value="25000"/>
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label>Bet / Spin <span class="mono" id="betRead">—</span></label>
+              <input id="bet" type="range" min="1" max="250" value="25"/>
+            </div>
+            <div>
+              <label>Volatility <span class="mono" id="volRead">—</span></label>
+              <select id="vol">
+                <option value="low">Low (more small wins)</option>
+                <option value="med" selected>Medium</option>
+                <option value="high">High (rare big hits)</option>
+              </select>
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label>Auto-spin <span class="mono" id="autoRead">—</span></label>
+              <select id="auto">
+                <option value="off" selected>Off</option>
+                <option value="on">On</option>
+              </select>
+            </div>
+            <div>
+              <label>Speed <span class="mono" id="spdRead">—</span></label>
+              <select id="speed">
+                <option value="cinematic" selected>Cinematic</option>
+                <option value="fast">Fast</option>
+                <option value="turbo">Turbo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btnRow">
+            <button id="spinBtn">SPIN</button>
+            <button id="maxBtn" class="super">MAX BET</button>
+            <button id="muteBtn" class="secondary">SOUND: ON</button>
+            <button id="refillBtn" class="secondary">REFILL +10,000</button>
+            <button id="resetBtn" class="danger">RESET</button>
+          </div>
+
+          <div class="marquee">
+            <div class="tiny">Hotkeys: <span class="kbd">Space</span> spin • <span class="kbd">M</span> mute • <span class="kbd">A</span> auto</div>
+            <div class="tiny"><b id="msg">Ready.</b></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Payouts</h2>
+          <p>5 reels • 3 rows • paylines: <b>middle</b>, <b>top</b>, <b>bottom</b>, <b>diagonals</b>. (Prototype odds; tune later.)</p>
+          <div class="mono" id="payTable">—</div>
+        </div>
+
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card stage">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>Machine</h1>
+            <div class="sub">All rendering is local (Canvas). No images. No internet.</div>
+          </div>
+        </div>
+        <div class="pill"><span class="dot red" id="spinDot"></span><span id="spinState">idle</span></div>
+      </div>
+
+      <div class="canvasWrap">
+        <canvas id="c" width="1600" height="1000"></canvas>
+        <div class="screenFlash" id="screenFlash" aria-hidden="true"></div>
+        <div class="leverFloat" id="lever" role="button" aria-label="Lever">
+          <div class="knob" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="status">
+        <div class="mono" id="status">Booting…</div>
+        <div class="pill">XRPL: later</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const c = $('c');
+  const g = c.getContext('2d', {alpha:false});
+
+  const balanceInp = $('balance');
+  const jackpotInp = $('jackpot');
+  const betInp = $('bet');
+  const volSel = $('vol');
+  const autoSel = $('auto');
+  const speedSel = $('speed');
+
+  const balRead = $('balRead');
+  const jackRead = $('jackRead');
+  const betRead = $('betRead');
+  const volRead = $('volRead');
+  const autoRead = $('autoRead');
+  const spdRead = $('spdRead');
+
+  const spinBtn = $('spinBtn');
+  const maxBtn = $('maxBtn');
+  const muteBtn = $('muteBtn');
+  const refillBtn = $('refillBtn');
+  const resetBtn = $('resetBtn');
+
+  const status = $('status');
+  const msg = $('msg');
+  const spinDot = $('spinDot');
+  const spinState = $('spinState');
+  const lever = $('lever');
+  const payTable = $('payTable');
+  const screenFlash = $('screenFlash');
+
+  const winOverlay = $('winOverlay');
+  const winCard = $('winCard');
+  const winTitle = $('winTitle');
+  const winSub = $('winSub');
+  const winCanvas = $('winCanvas');
+  const wg = winCanvas.getContext('2d');
+  let overlayTimer = 0;
+  let overlayMode = 'none'; // 'win' | 'jackpot'
+  let overlayAmount = 0;
+  let overlayStart = 0;
+
+
+  // ---------- tiny deterministic PRNG ----------
+  function xmur3(str){
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++){
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function(){
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      return (h ^= (h >>> 16)) >>> 0;
+    }
+  }
+  function sfc32(a,b,c,d){
+    return function(){
+      a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+      let t = (a + b) | 0;
+      a = b ^ (b >>> 9);
+      b = (c + (c << 3)) | 0;
+      c = (c << 21) | (c >>> 11);
+      d = (d + 1) | 0;
+      t = (t + d) | 0;
+      c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    }
+  }
+  function makeRng(seedStr){
+    const h = xmur3(seedStr);
+    return sfc32(h(), h(), h(), h());
+  }
+  function randInt(rng, a, b){ return Math.floor(rng()*(b-a+1))+a; }
+  function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  // ---------- WebAudio SFX (offline) ----------
+  let audioCtx = null;
+  let masterGain = null;
+  let muted = false;
+  let spinNoise = null;
+
+  function ensureAudio(){
+    if (muted) return;
+    if (!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.9;
+      masterGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+  }
+
+  function tone({f=440, f2=null, type='sine', dur=0.10, a=0.15, rel=0.08, pan=0} = {}){
+    if (muted) return;
+    ensureAudio();
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const panner = (audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null);
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(Math.max(20,f), t0);
+    if (f2) osc.frequency.exponentialRampToValueAtTime(Math.max(20,f2), t0 + dur);
+
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(a, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + rel);
+
+    // mild saturation
+    const shaper = audioCtx.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i=0;i<256;i++){
+      const x = (i/255)*2 - 1;
+      curve[i] = Math.tanh(x * 1.6);
+    }
+    shaper.curve = curve;
+    shaper.oversample = '2x';
+
+    osc.connect(shaper);
+    shaper.connect(gain);
+    if (panner){
+      panner.pan.setValueAtTime(clamp(pan, -1, 1), t0);
+      gain.connect(panner);
+      panner.connect(masterGain);
+    } else {
+      gain.connect(masterGain);
+    }
+
+    osc.start(t0);
+    osc.stop(t0 + dur + rel + 0.02);
+  }
+
+  function clickSfx(){ tone({f: 1150, f2: 850, type:'triangle', dur:0.045, a:0.09, rel:0.04}); }
+  function leverSfx(){ tone({f: 210, f2: 95, type:'triangle', dur:0.16, a:0.10, rel:0.10}); }
+  function stopSfx(pan=0){ tone({f: 520, f2: 320, type:'square', dur:0.065, a:0.10, rel:0.07, pan}); }
+  function smallWinSfx(){ tone({f: 660, f2: 990, type:'sine', dur:0.09, a:0.12, rel:0.08}); setTimeout(()=>tone({f: 880, f2: 1320, type:'sine', dur:0.10, a:0.11, rel:0.10}), 60); }
+  function bigWinSfx(){
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((n, i) => setTimeout(()=>tone({f:n, f2:n*1.08, type:'sawtooth', dur:0.10, a:0.10, rel:0.10}), i*70));
+    setTimeout(()=>tone({f: 120, f2: 70, type:'triangle', dur:0.22, a:0.08, rel:0.12}), 30);
+  }
+  function coinClink(pan=0){
+    // short metallic clink
+    tone({f: 1400 + Math.random()*800, f2: 600 + Math.random()*300, type:'triangle', dur:0.035 + Math.random()*0.03, a:0.07, rel:0.05, pan});
+    tone({f: 420 + Math.random()*220, f2: 180 + Math.random()*90, type:'sine', dur:0.05 + Math.random()*0.03, a:0.05, rel:0.07, pan});
+  }
+  function coinDropSfx(duration=1.2){
+    if (muted) return;
+    ensureAudio();
+    const start = audioCtx.currentTime;
+    const end = start + duration;
+    // add a soft "bucket" thump
+    tone({f: 170, f2: 75, type:'triangle', dur:0.22, a:0.10, rel:0.14, pan:0});
+    // schedule many clinks
+    let t = start;
+    while (t < end){
+      const dt = 0.02 + Math.random()*0.08; // clink density
+      t += dt;
+      const pan = -0.8 + Math.random()*1.6;
+      const when = t - audioCtx.currentTime;
+      setTimeout(()=>coinClink(pan), Math.max(0, when*1000));
+    }
+    // shimmering tail
+    setTimeout(()=>tone({f: 900, f2: 1600, type:'sine', dur:0.10, a:0.06, rel:0.16, pan:0}), 120);
+    setTimeout(()=>tone({f: 1200, f2: 1800, type:'sine', dur:0.12, a:0.05, rel:0.18, pan:0}), 220);
+  }
+  function jackpotSfx(){
+    // jackpot = a pile of coins raining into a pot
+    coinDropSfx(1.65);
+  }
+
+  function startSpinNoise(){
+    if (muted) return;
+    ensureAudio();
+    stopSpinNoise();
+    // white-ish noise via buffer source + filter
+    const bufferSize = 2 * audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i=0;i<bufferSize;i++) data[i] = (Math.random()*2 - 1) * 0.35;
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 950;
+    filter.Q.value = 0.9;
+
+    const gain = audioCtx.createGain();
+    gain.gain.value = 0.0;
+    gain.gain.setTargetAtTime(0.07, audioCtx.currentTime, 0.02);
+
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+    src.start();
+
+    spinNoise = {src, gain, filter};
+  }
+  function stopSpinNoise(){
+    if (!spinNoise) return;
+    try{
+      spinNoise.gain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.03);
+      setTimeout(()=>{
+        try{ spinNoise.src.stop(); }catch{}
+        spinNoise = null;
+      }, 120);
+    }catch{ spinNoise = null; }
+  }
+
+  function setMuted(v){
+    muted = v;
+    muteBtn.textContent = muted ? 'SOUND: OFF' : 'SOUND: ON';
+    if (muted) stopSpinNoise();
+  }
+
+  // ---------- symbols (no logos; abstract “crypto casino” vibe) ----------
+  const SYMBOLS = [
+    // Vegas classics (no external images; all drawn in Canvas)
+    { id:'XRP',   w:2.6, mult:{3:10,4:28,5:95},  color:'#FF5A5A' },
+    { id:'STAR',    w:3.4, mult:{3:6,4:18,5:65},   color:'#FFB7F6' },
+    { id:'MONEY',   w:3.2, mult:{3:8,4:22,5:78},   color:'#B6FFB2' },
+    { id:'BTC',     w:2.2, mult:{3:12,4:34,5:120}, color:'#FFD780' },
+    { id:'ETH',     w:2.4, mult:{3:11,4:32,5:110}, color:'#B7B7FF' },
+    { id:'SLOT', w:1.6, mult:{3:16,4:48,5:160}, color:'#7FE3FF' },
+    { id:'CHERRY',  w:4.6, mult:{3:4,4:10,5:35},   color:'#FF9F9F' },
+    { id:'WILD',    w:1.3, mult:{3:14,4:44,5:140}, color:'#FFFFFF', wild:true },
+  ];
+
+  // VOL affects weights (high volatility favors rare symbols)
+  function symbolWeights(vol){
+    const base = SYMBOLS.map(s => s.w);
+    if (vol === 'low') return base.map(w => w * 1.0);
+    if (vol === 'med') return base.map((w,i) => w * (SYMBOLS[i].wild ? 0.55 : 0.92));
+    // high: rarer big hitters, more blanks-ish commons; keep wild rare
+    return base.map((w,i) => w * (SYMBOLS[i].wild ? 0.35 : (w > 4.5 ? 1.10 : 0.88)));
+  }
+
+  function pickWeighted(rng, items, weights){
+    const sum = weights.reduce((a,b)=>a+b,0);
+    let r = rng()*sum;
+    for (let i=0;i<items.length;i++){
+      r -= weights[i];
+      if (r <= 0) return items[i];
+    }
+    return items[items.length-1];
+  }
+
+  // ---------- paylines ----------
+  // Each payline is an array of row indices (0 top,1 mid,2 bot) for each reel.
+  const PAYLINES = [
+    {name:'TOP',    rows:[0,0,0,0,0]},
+    {name:'MID',    rows:[1,1,1,1,1]},
+    {name:'BOT',    rows:[2,2,2,2,2]},
+    {name:'DIAG ↘', rows:[0,1,2,1,0]},
+    {name:'DIAG ↗', rows:[2,1,0,1,2]},
+  ];
+
+  // ---------- payout table UI ----------
+  function renderPayTable(){
+    const lines = [];
+    lines.push('SYMBOL        3x     4x      5x');
+    lines.push('--------------------------------');
+    for (const s of SYMBOLS){
+      const m3 = (s.mult[3]||0).toString().padStart(4,' ');
+      const m4 = (s.mult[4]||0).toString().padStart(4,' ');
+      const m5 = (s.mult[5]||0).toString().padStart(5,' ');
+      const name = (s.id + (s.wild?'*':'' )).padEnd(11,' ');
+      lines.push(`${name}  ${m3}x   ${m4}x   ${m5}x`);
+    }
+    lines.push('');
+    lines.push('* VOID = WILD (substitutes).');
+    payTable.textContent = lines.join('\n');
+  }
+
+  // ---------- canvas layout ----------
+  const L = {
+    W: c.width,
+    H: c.height,
+    pad: 80,
+    reelCount: 5,
+    rows: 3,
+    reelGap: 18,
+    reelR: 18,
+    faceR: 28,
+  };
+
+  function computeLayout(){
+    L.W = c.width; L.H = c.height;
+    const safe = 80;
+    const faceW = L.W - safe*2;
+    const faceH = L.H - safe*2;
+    L.face = {x:safe, y:safe, w:faceW, h:faceH};
+
+    // reels area inside face with padding
+    const innerPad = 80;
+    L.reels = {
+      x: L.face.x + innerPad,
+      y: L.face.y + 170,
+      w: L.face.w - innerPad*2,
+      h: L.face.h - 170 - 130
+    };
+    L.cellH = L.reels.h / L.rows;
+    L.reelW = (L.reels.w - (L.reelCount-1)*L.reelGap) / L.reelCount;
+  }
+  computeLayout();
+
+  // ---------- particles & lights ----------
+  const particles = [];
+  function spawnParticles(n, cx, cy, color, power=1){
+    for (let i=0;i<n;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = (0.6 + Math.random()*2.2) * 260 * power;
+      particles.push({
+        x:cx, y:cy,
+        vx: Math.cos(a)*sp,
+        vy: Math.sin(a)*sp - 50*power,
+        r: 1.0 + Math.random()*3.2,
+        life: 0.45 + Math.random()*0.75,
+        t:0,
+        color
+      });
+    }
+  }
+
+  // ---------- reels state ----------
+  const reels = [];
+  const stripLen = 36; // virtual strip length
+  for (let i=0;i<L.reelCount;i++){
+    reels.push({
+      idx:i,
+      pos: Math.random()*stripLen,   // scroll position (float)
+      vel: 0,                         // symbols/sec
+      spinning:false,
+      stopAtT:0,                      // time to begin stopping
+      target:null,                    // target 3 symbols for this reel
+      settling:false,
+      settleT:0,
+      stopSaid:false,
+    });
+  }
+
+  let isSpinning = false;
+  let lastGrid = null; // final 3x5 symbols (rows x reels)
+  let lastWins = [];   // paylines wins
+  let lastPayout = 0;
+  let lastWinTier = 'none'; // none/small/big/jackpot
+  let flashT = 0;
+
+  // ---------- game state ----------
+  function readNum(inp, fallback=0){
+    const v = parseFloat(inp.value);
+    return Number.isFinite(v) ? v : fallback;
+  }
+  function setReads(){
+    const bal = readNum(balanceInp, 0);
+    const jac = readNum(jackpotInp, 0);
+    const bet = parseInt(betInp.value,10);
+    balRead.textContent = bal.toFixed(0);
+    jackRead.textContent = jac.toFixed(0);
+    betRead.textContent = String(bet).padStart(3,' ') + ' credits';
+    volRead.textContent = volSel.value;
+    autoRead.textContent = autoSel.value;
+    spdRead.textContent = speedSel.value;
+  }
+
+  function setMsg(t, kind=''){
+    msg.textContent = t;
+    if (kind==='good') msg.style.color = 'rgba(182,255,178,.95)';
+    else if (kind==='warn') msg.style.color = 'rgba(255,215,128,.95)';
+    else if (kind==='bad') msg.style.color = 'rgba(255,122,122,.95)';
+    else msg.style.color = 'rgba(255,255,255,.92)';
+  }
+
+  function setSpinUI(on){
+    isSpinning = on;
+    spinBtn.disabled = on;
+    maxBtn.disabled = on;
+    resetBtn.disabled = on;
+    refillBtn.disabled = on;
+    betInp.disabled = on;
+    volSel.disabled = on;
+    speedSel.disabled = on;
+    autoSel.disabled = on;
+
+    spinState.textContent = on ? 'spinning' : 'idle';
+    spinDot.style.background = on ? 'rgba(255,122,122,.92)' : 'rgba(182,255,178,.92)';
+    spinDot.style.boxShadow = on ? '0 0 18px rgba(255,122,122,.55)' : '0 0 18px rgba(182,255,178,.55)';
+  }
+
+  // ---------- result generation ----------
+  function generateGrid(seedStr){
+    const vol = volSel.value;
+    const weights = symbolWeights(vol);
+    const rng = makeRng(seedStr);
+
+    // Build rows x reels
+    const grid = Array.from({length:L.rows}, ()=>Array.from({length:L.reelCount}, ()=>null));
+
+    // Weighted picks; optionally nudge to create occasional small wins.
+    // We'll do it by chance: 18% chance to force a 3-of-kind on a random payline; 2.2% for 4; 0.4% for 5; ultra-rare jackpot override.
+    const chance = rng();
+    const force5 = (chance < 0.004);
+    const force4 = (!force5 && chance < 0.026);
+    const force3 = (!force5 && !force4 && chance < 0.18);
+
+    // Jackpot condition: 5x COIN on MID line (very rare) OR 5x VOID wilds.
+    const jackpotRoll = rng();
+    const jackpotMode = (jackpotRoll < 0.0012); // ~0.12%
+
+    // Fill random base
+    for (let r=0;r<L.rows;r++){
+      for (let x=0;x<L.reelCount;x++){
+        grid[r][x] = pickWeighted(rng, SYMBOLS, weights);
+      }
+    }
+
+    if (jackpotMode){
+      const target = (rng() < 0.7) ? SYMBOLS.find(s=>s.id==='COIN') : SYMBOLS.find(s=>s.id==='VOID');
+      for (let x=0;x<L.reelCount;x++) grid[1][x] = target; // MID
+      // sprinkle extra highs
+      for (let x=0;x<L.reelCount;x++){
+        if (rng() < 0.55) grid[0][x] = pickWeighted(rng, SYMBOLS, weights);
+        if (rng() < 0.55) grid[2][x] = pickWeighted(rng, SYMBOLS, weights);
+      }
+      return grid;
+    }
+
+    if (force5 || force4 || force3){
+      const line = PAYLINES[randInt(rng, 0, PAYLINES.length-1)];
+      const len = force5 ? 5 : (force4 ? 4 : 3);
+      const sym = pickWeighted(rng, SYMBOLS, weights.map((w,i)=> w * (SYMBOLS[i].wild ? 0.25 : 1.0))); // reduce wild as forced match
+      // place match on first len reels
+      for (let x=0;x<len;x++){
+        const rr = line.rows[x];
+        grid[rr][x] = sym;
+      }
+      // optionally add a wild to extend sometimes
+      if (len===3 && rng()<0.10){
+        const wild = SYMBOLS.find(s=>s.wild);
+        grid[line.rows[3]][3] = wild;
+      }
+    }
+
+    return grid;
+  }
+
+  // Extract reel targets (3 symbols) from grid
+  function targetsFromGrid(grid){
+    const targets = [];
+    for (let x=0;x<L.reelCount;x++){
+      targets.push([grid[0][x], grid[1][x], grid[2][x]]);
+    }
+    return targets;
+  }
+
+  // ---------- win evaluation ----------
+  function symbolMatchScore(seq){
+    // seq = list of symbol objects along a line, length 5
+    // Wild substitutes; compute best match run from left.
+    const wild = (s) => !!s.wild;
+    let base = null;
+    let count = 0;
+    for (let i=0;i<seq.length;i++){
+      const s = seq[i];
+      if (!base){
+        if (wild(s)) { count++; continue; }
+        base = s; count++;
+      } else {
+        if (s.id === base.id || wild(s)) count++;
+        else break;
+      }
+    }
+    if (!base){
+      // all wilds
+      base = SYMBOLS.find(s=>s.wild);
+    }
+    return {base, count};
+  }
+
+  function evaluateWins(grid, bet){
+    let total = 0;
+    const wins = [];
+    let biggest = 0;
+    let jackpot = false;
+
+    for (const line of PAYLINES){
+      const seq = line.rows.map((r, x) => grid[r][x]);
+      const {base, count} = symbolMatchScore(seq);
+      if (count >= 3){
+        const mult = base.mult[count] || 0;
+        const payout = bet * mult;
+        if (payout > 0){
+          wins.push({line:line.name, base, count, payout, rows:line.rows});
+          total += payout;
+          biggest = Math.max(biggest, payout);
+          if ((base.id === 'COIN' && count === 5) || (base.id === 'VOID' && count === 5)) jackpot = true;
+        }
+      }
+    }
+
+    let tier = 'none';
+    if (jackpot) tier = 'jackpot';
+    else if (biggest >= bet * 60) tier = 'big';
+    else if (total > 0) tier = 'small';
+
+    return {total, wins, tier, jackpot};
+  }
+
+  // ---------- spin animation control ----------
+  function speedParams(){
+    const s = speedSel.value;
+    if (s === 'turbo') return {spinTime: 0.9, stagger: 0.12, baseVel: 18};
+    if (s === 'fast') return {spinTime: 1.35, stagger: 0.16, baseVel: 15};
+    return {spinTime: 1.95, stagger: 0.20, baseVel: 12.5}; // cinematic
+  }
+
+  let spinStartT = 0;
+  let stopPlan = null;
+
+  function startSpin(){
+    if (isSpinning) return;
+
+    const bal = readNum(balanceInp, 0);
+    const bet = parseInt(betInp.value, 10);
+    if (bal < bet){
+      setMsg('Not enough balance.', 'bad');
+      clickSfx();
+      return;
+    }
+    balanceInp.value = String(Math.max(0, bal - bet));
+    jackpotInp.value = String(readNum(jackpotInp, 0) + Math.max(1, Math.floor(bet * 0.18)));
+
+    // seed for this spin: time + balance + bet (local)
+    const seedStr = 'spin|' + Date.now() + '|' + bal + '|' + bet + '|' + volSel.value;
+    const grid = generateGrid(seedStr);
+    const targets = targetsFromGrid(grid);
+
+    const ev = evaluateWins(grid, bet);
+    lastGrid = grid;
+    lastWins = ev.wins;
+    lastPayout = ev.total;
+    lastWinTier = ev.tier;
+    flashT = 0;
+
+    // plan reel stops
+    const sp = speedParams();
+    spinStartT = performance.now()/1000;
+    stopPlan = {targets, stopAt: [], settled:false, ev, bet};
+    for (let i=0;i<L.reelCount;i++){
+      stopPlan.stopAt[i] = spinStartT + sp.spinTime + i*sp.stagger;
+    }
+
+    // start reels
+    for (let i=0;i<reels.length;i++){
+      const r = reels[i];
+      r.spinning = true;
+      r.settling = false;
+      r.stopSaid = false;
+      r.target = targets[i];
+      r.vel = sp.baseVel + i*1.0;
+    }
+
+    setSpinUI(true);
+    setMsg('Spinning…', 'warn');
+    lever.classList.add('pulled');
+    setTimeout(()=>lever.classList.remove('pulled'), 220);
+
+    // SFX
+    clickSfx();
+    startSpinNoise();
+  }
+
+  // ---------- drawing helpers ----------
+  function rrPath(ctx, x,y,w,h,r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+
+  function glowRect(ctx, x,y,w,h,r, color, blur=24, alpha=0.45){
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = blur;
+    ctx.globalAlpha = alpha;
+    rrPath(ctx, x,y,w,h,r);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function vignette(ctx){
+    const W=c.width, H=c.height;
+    const grd = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.20, W/2, H/2, Math.max(W,H)*0.68);
+    grd.addColorStop(0, 'rgba(0,0,0,0)');
+    grd.addColorStop(1, 'rgba(0,0,0,0.55)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  function drawBackground(t){
+    const W=c.width,H=c.height;
+    // base
+    g.fillStyle = '#05060a';
+    g.fillRect(0,0,W,H);
+
+    // drifting gradients
+    const cx = W*(0.5 + Math.sin(t*0.12)*0.06);
+    const cy = H*(0.45 + Math.cos(t*0.10)*0.06);
+    const r = Math.max(W,H)*0.7;
+    const grd = g.createRadialGradient(cx,cy, 0, cx,cy, r);
+    grd.addColorStop(0, 'rgba(127,227,255,0.14)');
+    grd.addColorStop(0.45, 'rgba(182,255,178,0.08)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grd;
+    g.fillRect(0,0,W,H);
+
+    // subtle scanlines
+    g.globalAlpha = 0.05;
+    g.fillStyle = '#fff';
+    const spacing = 4;
+    for (let y=0;y<H;y+=spacing){
+      g.fillRect(0,y,W,1);
+    }
+    g.globalAlpha = 1;
+  }
+
+  function drawFace(t){
+    const f = L.face;
+    // outer glow frame
+    glowRect(g, f.x-6, f.y-6, f.w+12, f.h+12, L.faceR+4, 'rgba(127,227,255,0.65)', 34, 0.30);
+    glowRect(g, f.x-2, f.y-2, f.w+4, f.h+4, L.faceR+3, 'rgba(182,255,178,0.55)', 24, 0.18);
+
+    // face body
+    rrPath(g, f.x, f.y, f.w, f.h, L.faceR);
+    const gg = g.createLinearGradient(f.x, f.y, f.x+f.w, f.y+f.h);
+    gg.addColorStop(0, 'rgba(255,255,255,0.10)');
+    gg.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+    gg.addColorStop(1, 'rgba(255,255,255,0.08)');
+    g.fillStyle = gg;
+    g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.14)';
+    g.lineWidth = 2;
+    g.stroke();
+
+    // header area (jackpot)
+    const hx = f.x+40, hy = f.y+34, hw = f.w-80, hh = 92;
+    glowRect(g, hx,hy,hw,hh, 22, 'rgba(255,215,128,0.65)', 30, 0.25);
+    rrPath(g, hx,hy,hw,hh, 22);
+    const hgg = g.createLinearGradient(hx,hy,hx,hy+hh);
+    hgg.addColorStop(0, 'rgba(255,255,255,0.10)');
+    hgg.addColorStop(1, 'rgba(0,0,0,0.18)');
+    g.fillStyle = hgg;
+    g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.10)';
+    g.stroke();
+
+    // marquee lights on header
+    const bulbs = 28;
+    for (let i=0;i<bulbs;i++){
+      const px = hx + 18 + i*( (hw-36)/(bulbs-1) );
+      const pulse = 0.5 + 0.5*Math.sin(t*4 + i*0.55);
+      const on = pulse > 0.12;
+      g.beginPath();
+      g.arc(px, hy+14, 4.6, 0, Math.PI*2);
+      g.fillStyle = on ? `rgba(255,215,128,${0.55+0.35*pulse})` : 'rgba(255,255,255,0.10)';
+      g.fill();
+    }
+
+    // jackpot text
+    const jac = readNum(jackpotInp, 0);
+    g.save();
+    g.font = '900 34px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    g.fillStyle = 'rgba(255,255,255,.92)';
+    g.shadowColor = 'rgba(255,215,128,0.65)';
+    g.shadowBlur = 24;
+    g.fillText('SLOT', hx+18, hy+56);
+    g.shadowBlur = 0;
+    g.font = '900 40px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace';
+    g.fillStyle = 'rgba(255,215,128,.95)';
+    g.shadowColor = 'rgba(255,215,128,0.55)';
+    g.shadowBlur = 26;
+    g.fillText(String(Math.floor(jac)).padStart(6,'0'), hx+220, hy+60);
+    g.restore();
+
+    // bottom panel (balance + bet)
+    const bx = f.x+40, by = f.y+f.h-110, bw = f.w-80, bh = 70;
+    rrPath(g, bx,by,bw,bh, 20);
+    g.fillStyle = 'rgba(0,0,0,0.20)';
+    g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.10)';
+    g.stroke();
+
+    const bal = readNum(balanceInp, 0);
+    const bet = parseInt(betInp.value,10);
+    g.save();
+    g.font = '800 22px ui-sans-serif, system-ui';
+    g.fillStyle = 'rgba(255,255,255,.88)';
+    g.fillText('BAL', bx+16, by+44);
+    g.font = '900 26px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace';
+    g.fillStyle = 'rgba(127,227,255,.95)';
+    g.shadowColor = 'rgba(127,227,255,.55)';
+    g.shadowBlur = 20;
+    g.fillText(String(Math.floor(bal)).padStart(6,'0'), bx+70, by+46);
+
+    g.shadowBlur = 0;
+    g.font = '800 22px ui-sans-serif, system-ui';
+    g.fillStyle = 'rgba(255,255,255,.88)';
+    g.fillText('BET', bx+bw-190, by+44);
+    g.font = '900 26px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace';
+    g.fillStyle = 'rgba(182,255,178,.95)';
+    g.shadowColor = 'rgba(182,255,178,.55)';
+    g.shadowBlur = 18;
+    g.fillText(String(bet).padStart(3,'0'), bx+bw-120, by+46);
+    g.restore();
+  }
+
+  function drawSymbol(ctx, sym, x, y, w, h, t, glow=1.0){
+    // icon inside a glossy tile
+    const r = 18;
+    ctx.save();
+
+    // tile background
+    rrPath(ctx, x, y, w, h, r);
+    const bg = ctx.createLinearGradient(x,y,x,y+h);
+    bg.addColorStop(0, 'rgba(255,255,255,0.10)');
+    bg.addColorStop(0.45, 'rgba(0,0,0,0.10)');
+    bg.addColorStop(1, 'rgba(255,255,255,0.06)');
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // inner glow based on symbol color
+    const col = sym.color || '#7FE3FF';
+    ctx.shadowColor = col;
+    ctx.shadowBlur = 22 * glow;
+    ctx.globalAlpha = 0.92;
+
+    // icon coordinate system
+    const cx = x + w/2, cy = y + h/2;
+    const s = Math.min(w,h)*0.30;
+
+    ctx.translate(cx,cy);
+    ctx.rotate(Math.sin(t*0.8 + (cx+cy)*0.001)*0.04);
+
+    ctx.lineWidth = Math.max(2, s*0.18);
+    ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+    ctx.fillStyle = col;
+
+    const pulse = 0.75 + 0.25*Math.sin(t*2.0 + (cx+cy)*0.01);
+    ctx.globalAlpha = 0.72 + 0.20*pulse;
+
+    function poly(points, fill=true){
+      ctx.beginPath();
+      for (let i=0;i<points.length;i++){
+        const [px,py] = points[i];
+        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.closePath();
+      if (fill) ctx.fill();
+      ctx.globalAlpha *= 0.75;
+      ctx.stroke();
+      ctx.globalAlpha /= 0.75;
+    }
+
+    switch(sym.id){
+      case 'XRP': {
+        // glossy 7 with inline stroke
+        ctx.save();
+        ctx.rotate(-0.06);
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.lineWidth = Math.max(6, s*0.28);
+        ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+        ctx.fillStyle = col;
+
+        // shadow stroke
+        ctx.beginPath();
+        ctx.moveTo(-s*1.05, -s*1.25);
+        ctx.lineTo(s*1.15, -s*1.25);
+        ctx.lineTo(-s*0.10, s*1.35);
+        ctx.stroke();
+
+        // main 7
+        ctx.lineWidth = Math.max(5, s*0.24);
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.beginPath();
+        ctx.moveTo(-s*1.05, -s*1.25);
+        ctx.lineTo(s*1.15, -s*1.25);
+        ctx.lineTo(-s*0.10, s*1.35);
+        ctx.stroke();
+
+        // neon fill highlight
+        ctx.globalAlpha *= 0.85;
+        ctx.lineWidth = Math.max(3, s*0.14);
+        ctx.strokeStyle = col;
+        ctx.beginPath();
+        ctx.moveTo(-s*0.95, -s*1.05);
+        ctx.lineTo(s*0.95, -s*1.05);
+        ctx.lineTo(-s*0.15, s*1.10);
+        ctx.stroke();
+        ctx.restore();
+        break;
+      }
+      case 'STAR': {
+        ctx.beginPath();
+        for (let i=0;i<10;i++){
+          const ang = i*Math.PI/5 - Math.PI/2;
+          const rr = (i%2===0) ? s*1.35 : s*0.58;
+          ctx.lineTo(Math.cos(ang)*rr, Math.sin(ang)*rr);
+        }
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        break;
+      }
+      case 'MONEY': {
+        // bill + small stack
+        const w = s*2.2, h = s*1.35;
+        ctx.lineWidth = Math.max(3, s*0.16);
+        ctx.fillStyle = col;
+        ctx.strokeStyle = 'rgba(255,255,255,0.80)';
+
+        // back bill
+        ctx.save();
+        ctx.translate(-s*0.10, -s*0.10);
+        ctx.rotate(-0.12);
+        ctx.beginPath();
+        ctx.roundRect(-w*0.5, -h*0.5, w, h, s*0.20);
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
+
+        // front bill
+        ctx.beginPath();
+        ctx.roundRect(-w*0.5, -h*0.5, w, h, s*0.20);
+        ctx.fill(); ctx.stroke();
+
+        // inner details
+        ctx.globalAlpha *= 0.75;
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+        ctx.lineWidth = Math.max(2, s*0.10);
+        ctx.beginPath();
+        ctx.roundRect(-w*0.38, -h*0.30, w*0.76, h*0.60, s*0.16);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.beginPath();
+        ctx.arc(0,0, s*0.30, 0, Math.PI*2);
+        ctx.fill();
+        break;
+      }
+      case 'BTC': {
+        // simple Bitcoin-like mark: coin + "B" with vertical strokes
+        ctx.lineWidth = Math.max(3, s*0.18);
+        ctx.fillStyle = 'rgba(255,215,128,0.95)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.80)';
+        ctx.beginPath();
+        ctx.arc(0,0, s*1.25, 0, Math.PI*2);
+        ctx.fill(); ctx.stroke();
+
+        ctx.globalAlpha *= 0.9;
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.beginPath();
+        ctx.arc(0,0, s*0.95, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.font = `900 ${Math.floor(s*1.35)}px ui-sans-serif, system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('B', 0, 2);
+
+        ctx.globalAlpha *= 0.85;
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = Math.max(3, s*0.14);
+        ctx.beginPath();
+        ctx.moveTo(-s*0.35, -s*0.90);
+        ctx.lineTo(-s*0.35, s*0.90);
+        ctx.moveTo(s*0.35, -s*0.90);
+        ctx.lineTo(s*0.35, s*0.90);
+        ctx.stroke();
+        break;
+      }
+      case 'ETH': {
+        // Ethereum-like diamond
+        ctx.lineWidth = Math.max(3, s*0.16);
+        ctx.fillStyle = 'rgba(183,183,255,0.95)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        const top = [0, -s*1.45];
+        const left = [-s*0.85, 0];
+        const right = [s*0.85, 0];
+        const bottom = [0, s*1.55];
+
+        ctx.beginPath();
+        ctx.moveTo(top[0], top[1]);
+        ctx.lineTo(right[0], right[1]);
+        ctx.lineTo(left[0], left[1]);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        ctx.globalAlpha *= 0.9;
+        ctx.fillStyle = 'rgba(255,255,255,0.40)';
+        ctx.beginPath();
+        ctx.moveTo(left[0], left[1]);
+        ctx.lineTo(right[0], right[1]);
+        ctx.lineTo(bottom[0], bottom[1]);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.20)';
+        ctx.beginPath();
+        ctx.moveTo(0, -s*1.10);
+        ctx.lineTo(0, s*1.40);
+        ctx.stroke();
+        break;
+      }
+      case 'SLOT': {
+        // burst badge with "JP"
+        ctx.lineWidth = Math.max(3, s*0.16);
+        ctx.fillStyle = col;
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        const spikes = 14;
+        ctx.beginPath();
+        for (let i=0;i<spikes*2;i++){
+          const ang = i*Math.PI/(spikes);
+          const rr = (i%2===0) ? s*1.35 : s*0.88;
+          const px = Math.cos(ang)*rr;
+          const py = Math.sin(ang)*rr;
+          if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.beginPath(); ctx.arc(0,0, s*0.95, 0, Math.PI*2); ctx.fill();
+
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.font = `950 ${Math.floor(s*1.05)}px ui-sans-serif, system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('JP', 0, 2);
+        break;
+      }
+      case 'CHERRY': {
+        // two cherries + stem
+        ctx.lineWidth = Math.max(3, s*0.14);
+        ctx.strokeStyle = 'rgba(255,255,255,0.80)';
+        // stem
+        ctx.beginPath();
+        ctx.moveTo(-s*0.35, -s*1.15);
+        ctx.quadraticCurveTo(-s*0.10, -s*0.65, -s*0.20, -s*0.20);
+        ctx.moveTo(s*0.35, -s*1.15);
+        ctx.quadraticCurveTo(s*0.10, -s*0.65, s*0.20, -s*0.20);
+        ctx.stroke();
+
+        // leaf
+        ctx.fillStyle = 'rgba(182,255,178,0.85)';
+        ctx.beginPath();
+        ctx.ellipse(0, -s*1.05, s*0.45, s*0.22, -0.4, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+        ctx.stroke();
+
+        // cherries
+        ctx.fillStyle = 'rgba(255,90,90,0.95)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.beginPath(); ctx.arc(-s*0.45, s*0.30, s*0.62, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(s*0.45, s*0.35, s*0.62, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+
+        // highlights
+        ctx.globalAlpha *= 0.55;
+        ctx.fillStyle = 'rgba(255,255,255,0.70)';
+        ctx.beginPath(); ctx.arc(-s*0.62, s*0.10, s*0.18, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(s*0.28, s*0.15, s*0.18, 0, Math.PI*2); ctx.fill();
+        break;
+      }
+      case 'WILD': {
+        // WILD badge + star ring
+        ctx.shadowBlur = 30 * glow;
+        ctx.fillStyle = 'rgba(0,0,0,0.85)';
+        ctx.beginPath(); ctx.arc(0,0, s*1.15, 0, Math.PI*2); ctx.fill();
+
+        ctx.lineWidth = Math.max(3, s*0.20);
+        ctx.strokeStyle = 'rgba(255,255,255,0.90)';
+        ctx.beginPath(); ctx.arc(0,0, s*1.30, 0, Math.PI*2); ctx.stroke();
+
+        // little stars
+        ctx.strokeStyle = 'rgba(255,255,255,0.70)';
+        ctx.lineWidth = Math.max(2, s*0.10);
+        for (let k=0;k<8;k++){
+          const ang = k*Math.PI/4 + t*0.6;
+          const rr = s*1.48;
+          const px = Math.cos(ang)*rr;
+          const py = Math.sin(ang)*rr;
+          ctx.beginPath();
+          ctx.moveTo(px,py);
+          ctx.lineTo(px + Math.cos(ang+Math.PI/2)*s*0.18, py + Math.sin(ang+Math.PI/2)*s*0.18);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.font = `950 ${Math.floor(s*0.95)}px ui-sans-serif, system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('WILD', 0, 2);
+        break;
+      }
+    }
+
+    // glossy highlight
+    ctx.globalAlpha = 0.20;
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.rotate(-0.2);
+    ctx.beginPath();
+    ctx.ellipse(-s*0.35, -s*0.55, s*0.80, s*0.35, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawReels(t){
+    const R = L.reels;
+    // frame around reels
+    glowRect(g, R.x-14, R.y-14, R.w+28, R.h+28, 22, 'rgba(127,227,255,0.65)', 34, 0.22);
+    rrPath(g, R.x-8, R.y-8, R.w+16, R.h+16, 22);
+    g.fillStyle = 'rgba(0,0,0,0.26)';
+    g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.12)';
+    g.lineWidth = 2;
+    g.stroke();
+
+    // winline overlays
+    if (lastWins.length && !isSpinning){
+      flashT += 1/60;
+    }
+
+    for (let i=0;i<L.reelCount;i++){
+      const rx = R.x + i*(L.reelW + L.reelGap);
+      const ry = R.y;
+      // reel panel
+      rrPath(g, rx, ry, L.reelW, R.h, L.reelR);
+      const grad = g.createLinearGradient(rx,ry,rx,ry+R.h);
+      grad.addColorStop(0,'rgba(255,255,255,0.08)');
+      grad.addColorStop(0.45,'rgba(0,0,0,0.18)');
+      grad.addColorStop(1,'rgba(255,255,255,0.06)');
+      g.fillStyle = grad;
+      g.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.12)';
+      g.lineWidth = 1.5;
+      g.stroke();
+
+      // symbol viewport clip
+      g.save();
+      rrPath(g, rx+10, ry+10, L.reelW-20, R.h-20, 14);
+      g.clip();
+
+      // determine visible symbols from reel pos
+      const pos = reels[i].pos;
+      const baseIndex = Math.floor(pos);
+      const frac = pos - baseIndex;
+      const cellH = L.cellH;
+      const padY = -frac*cellH;
+      for (let row=-1; row<L.rows+1; row++){
+        const symIndex = (baseIndex + row + stripLen*10) % stripLen;
+        // use a repeatable strip mapping from index => symbol
+        const sym = SYMBOLS[symIndex % SYMBOLS.length];
+        const x = rx + 18;
+        const y = ry + 18 + (row*cellH) + padY;
+        const w = L.reelW - 36;
+        const h = cellH - 22;
+        // emphasize middle row a touch
+        const glow = (row===1) ? 1.08 : 0.92;
+        drawSymbol(g, sym, x, y, w, h, t + i*0.2, glow);
+      }
+
+      g.restore();
+
+      // divider lines
+      g.globalAlpha = 0.16;
+      g.strokeStyle = '#fff';
+      g.lineWidth = 2;
+      for (let r=1;r<L.rows;r++){
+        g.beginPath();
+        g.moveTo(rx+14, ry + r*L.cellH);
+        g.lineTo(rx+L.reelW-14, ry + r*L.cellH);
+        g.stroke();
+      }
+      g.globalAlpha = 1;
+
+      // win highlight per reel (if any win)
+      if (lastWins.length && !isSpinning){
+        const pulse = 0.55 + 0.45*Math.sin(flashT*8 + i*0.7);
+        const anyHit = lastWins.some(w => w.rows[i] !== undefined);
+        if (anyHit){
+          glowRect(g, rx-2, ry-2, L.reelW+4, R.h+4, L.reelR+2, 'rgba(182,255,178,0.85)', 36, 0.12 + 0.10*pulse);
+        }
+      }
+    }
+
+    // payline beams
+    if (lastWins.length && !isSpinning){
+      for (const w of lastWins){
+        const pulse = 0.5 + 0.5*Math.sin(flashT*10 + w.count);
+        const color = (w.base.id==='COIN') ? 'rgba(255,215,128,0.90)' :
+                      (w.base.wild) ? 'rgba(255,255,255,0.90)' :
+                      'rgba(182,255,178,0.90)';
+        g.save();
+        g.globalAlpha = 0.08 + 0.10*pulse;
+        g.strokeStyle = color;
+        g.lineWidth = 10;
+        g.lineCap = 'round';
+        g.shadowColor = color;
+        g.shadowBlur = 30;
+        g.beginPath();
+        for (let i=0;i<L.reelCount;i++){
+          const rx = R.x + i*(L.reelW + L.reelGap);
+          const y = R.y + (w.rows[i] + 0.5)*L.cellH;
+          const x = rx + L.reelW/2;
+          if (i===0) g.moveTo(x,y); else g.lineTo(x,y);
+        }
+        g.stroke();
+        g.restore();
+      }
+    }
+
+    // reel window shading
+    g.save();
+    g.globalAlpha = 0.14;
+    const topShade = g.createLinearGradient(0, R.y, 0, R.y + 80);
+    topShade.addColorStop(0, 'rgba(0,0,0,1)');
+    topShade.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = topShade;
+    g.fillRect(R.x-10, R.y-10, R.w+20, 90);
+    const botShade = g.createLinearGradient(0, R.y+R.h-80, 0, R.y+R.h);
+    botShade.addColorStop(0, 'rgba(0,0,0,0)');
+    botShade.addColorStop(1, 'rgba(0,0,0,1)');
+    g.fillStyle = botShade;
+    g.fillRect(R.x-10, R.y+R.h-90, R.w+20, 90);
+    g.restore();
+  }
+
+  function drawButtons(t){
+    // draw big button panel inside face (for extra “casino machine” vibe)
+    const f=L.face;
+    const px = f.x+70;
+    const py = f.y + f.h - 205;
+    const pw = f.w - 140;
+    const ph = 80;
+
+    rrPath(g, px,py,pw,ph, 24);
+    g.fillStyle = 'rgba(0,0,0,0.26)';
+    g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.10)';
+    g.lineWidth = 2;
+    g.stroke();
+
+    // faux LED buttons
+    const btns = [
+      {label:'SPIN', col:'rgba(127,227,255,0.95)'},
+      {label:'MAX',  col:'rgba(182,255,178,0.95)'},
+      {label:'AUTO', col:'rgba(255,215,128,0.95)'},
+      {label:'MUTE', col:'rgba(255,122,122,0.95)'},
+    ];
+    const bw = (pw - 30 - (btns.length-1)*18) / btns.length;
+    for (let i=0;i<btns.length;i++){
+      const x = px + 15 + i*(bw+18);
+      const y = py + 12;
+      const col = btns[i].col;
+      const pulse = 0.55 + 0.45*Math.sin(t*3.4 + i*1.1);
+      glowRect(g, x,y,bw,ph-24, 18, col, 28, 0.10 + 0.10*pulse);
+      rrPath(g, x,y,bw,ph-24, 18);
+      const gg = g.createLinearGradient(x,y,x,y+ph-24);
+      gg.addColorStop(0,'rgba(255,255,255,0.18)');
+      gg.addColorStop(0.5, 'rgba(255,255,255,0.07)');
+      gg.addColorStop(1,'rgba(0,0,0,0.20)');
+      g.fillStyle = gg;
+      g.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.10)';
+      g.stroke();
+
+      g.save();
+      g.font = '900 18px ui-sans-serif, system-ui';
+      g.fillStyle = 'rgba(255,255,255,0.88)';
+      g.shadowColor = col;
+      g.shadowBlur = 18;
+      g.fillText(btns[i].label, x+16, y+42);
+      g.restore();
+    }
+  }
+
+  function updateParticles(dt){
+    const W=c.width,H=c.height;
+    for (let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.t += dt;
+      if (p.t > p.life){ particles.splice(i,1); continue; }
+      p.vy += 620*dt; // gravity
+      p.x += p.vx*dt;
+      p.y += p.vy*dt;
+      p.vx *= Math.pow(0.30, dt);
+      p.vy *= Math.pow(0.38, dt);
+      if (p.y > H+60) { particles.splice(i,1); continue; }
+    }
+  }
+  function drawParticles(){
+    g.save();
+    for (const p of particles){
+      const a = 1 - (p.t/p.life);
+      g.globalAlpha = 0.55 * a;
+      g.fillStyle = p.color;
+      g.shadowColor = p.color;
+      g.shadowBlur = 18;
+      g.beginPath();
+      g.arc(p.x, p.y, p.r*(0.7+0.6*a), 0, Math.PI*2);
+      g.fill();
+    }
+    g.restore();
+  }
+
+  // ---------- reel update ----------
+  function stepReels(t, dt){
+    if (!stopPlan) {
+      // idle drift
+      for (const r of reels){
+        r.pos = (r.pos + dt*0.2) % stripLen;
+      }
+      return;
+    }
+
+    const sp = speedParams();
+    for (let i=0;i<reels.length;i++){
+      const r = reels[i];
+
+      if (!r.spinning){
+        // settle to target visuals if we have lastGrid
+        continue;
+      }
+
+      // accelerate then cruise
+      const elapsed = t - spinStartT;
+      const accel = clamp(elapsed / 0.28, 0, 1);
+      const cruiseVel = r.vel;
+      const targetVel = cruiseVel * lerp(0.65, 1.0, accel);
+      r.pos = (r.pos + targetVel*dt) % stripLen;
+
+      // begin stopping after stopAt
+      if (t >= stopPlan.stopAt[i] && !r.settling){
+        r.settling = true;
+        r.settleT = 0;
+      }
+
+      if (r.settling){
+        r.settleT += dt;
+        // ease velocity down
+        const k = clamp(r.settleT / lerp(0.45, 0.75, sp.spinTime/2.0), 0, 1);
+        const ease = 1 - Math.pow(k, 2.2);
+        const vNow = cruiseVel * clamp(ease, 0, 1);
+        r.pos = (r.pos + vNow*dt) % stripLen;
+
+        // snap when near stop
+        if (k >= 1){
+          r.spinning = false;
+          r.settling = false;
+
+          // Force the reel to display the target symbols.
+          // We do this by setting reel.pos so that baseIndex corresponds to "top" symbol index in a virtual strip
+          // Using a mapping: stripIndex => symbol = SYMBOLS[stripIndex % SYMBOLS.length].
+          // We want the three visible rows to be target[0..2]. We'll pick an index whose mod matches target[0].
+          const topSym = r.target[0];
+          const wantMod = SYMBOLS.findIndex(s => s.id === topSym.id);
+          // Find nearest strip index with that mod
+          let baseIndex = Math.floor(r.pos);
+          let best = baseIndex;
+          let bestDist = 1e9;
+          for (let off=-stripLen; off<=stripLen; off++){
+            const idx = baseIndex + off;
+            if (((idx % SYMBOLS.length)+SYMBOLS.length)%SYMBOLS.length === wantMod){
+              const dist = Math.abs(off);
+              if (dist < bestDist){ bestDist = dist; best = idx; }
+            }
+          }
+          r.pos = (best % stripLen + stripLen) % stripLen;
+
+          if (!r.stopSaid){
+            const pan = lerp(-0.8, 0.8, i/(reels.length-1));
+            stopSfx(pan);
+            r.stopSaid = true;
+          }
+        }
+      }
+    }
+
+    // if all stopped
+    if (stopPlan && reels.every(r => !r.spinning)){
+      stopSpinNoise();
+
+      const {ev, bet} = stopPlan;
+      const payout = ev.total;
+
+      if (payout > 0){
+        balanceInp.value = String(readNum(balanceInp,0) + payout);
+        if (ev.jackpot){
+          const jac = readNum(jackpotInp,0);
+          const win = Math.floor(jac);
+          jackpotInp.value = '25000'; // reset to base
+          balanceInp.value = String(readNum(balanceInp,0) + win);
+          setMsg('SLOT HIT! +' + win + ' (plus line wins)', 'good');
+          showOverlay('jackpot', '+' + win);
+          jackpotSfx();
+          spawnParticles(240, c.width/2, L.face.y+120, 'rgba(255,215,128,0.95)', 1.35);
+        } else {
+          if (ev.tier === 'big'){
+            setMsg('BIG WIN! +' + payout, 'good');
+            showOverlay('win', '+' + payout);
+            bigWinSfx();
+            coinDropSfx(0.85);
+            spawnParticles(180, c.width/2, L.face.y+140, 'rgba(182,255,178,0.95)', 1.05);
+          } else {
+            setMsg('WIN! +' + payout, 'good');
+            showOverlay('win', '+' + payout);
+            smallWinSfx();
+            coinDropSfx(0.65);
+            spawnParticles(90, c.width/2, L.face.y+140, 'rgba(127,227,255,0.95)', 0.85);
+          }
+        }
+      } else {
+        setMsg('No win. Spin again.', '');
+      }
+
+      setSpinUI(false);
+      status.textContent = buildStatusLine();
+      stopPlan = null;
+
+      // auto-spin
+      if (autoSel.value === 'on'){
+        setTimeout(()=>{
+          if (!isSpinning) startSpin();
+        }, 220);
+      }
+    }
+  }
+
+  function buildStatusLine(){
+    const bet = parseInt(betInp.value,10);
+    const v = volSel.value;
+    const sp = speedSel.value;
+    const win = lastPayout || 0;
+    const lines = lastWins.length ? lastWins.map(w => `${w.line}: ${w.base.id}${w.base.wild?'*':''} x${w.count} => +${w.payout}`).join(' | ') : '—';
+    return `Bet=${bet}  Vol=${v}  Speed=${sp}  LastWin=${win}\nLines: ${lines}`;
+  }
+
+  // ---------- Win/SLOT overlay "gif-like" animation (offline) ----------
+  function showOverlay(mode, amountText){
+    overlayMode = mode;
+    overlayAmount = amountText;
+    overlayStart = performance.now()/1000;
+    overlayTimer = 2.2; // seconds visible
+    winOverlay.classList.add('show');
+    winCard.classList.toggle('jackpot', mode === 'jackpot');
+    winTitle.textContent = (mode === 'jackpot') ? 'SLOT!' : 'YOU WIN!';
+    winSub.textContent = amountText;
+    if (screenFlash){
+      screenFlash.classList.add('on');
+      setTimeout(()=>screenFlash.classList.remove('on'), mode === 'jackpot' ? 520 : 260);
+    }
+  }
+  function hideOverlay(){
+    overlayTimer = 0;
+    winOverlay.classList.remove('show');
+  }
+
+  function drawPotOfGold(t, intensity=1.0){
+    const W = winCanvas.width, H = winCanvas.height;
+    wg.clearRect(0,0,W,H);
+
+    // bg shimmer
+    const gx = W*(0.35 + Math.sin(t*0.8)*0.06);
+    const gy = H*(0.40 + Math.cos(t*0.7)*0.06);
+    const grd = wg.createRadialGradient(gx,gy, 0, gx,gy, Math.max(W,H)*0.75);
+    const a1 = 0.25*intensity;
+    grd.addColorStop(0, `rgba(255,215,128,${0.22*a1})`);
+    grd.addColorStop(0.35, `rgba(127,227,255,${0.16*a1})`);
+    grd.addColorStop(1, `rgba(0,0,0,${0.0})`);
+    wg.fillStyle = 'rgba(0,0,0,0.00)';
+    wg.fillRect(0,0,W,H);
+    wg.fillStyle = grd;
+    wg.fillRect(0,0,W,H);
+
+    // pot
+    const cx = W*0.50, cy = H*0.62;
+    const potW = W*0.30, potH = H*0.32;
+    const rimH = potH*0.22;
+
+    // shadow
+    wg.save();
+    wg.globalAlpha = 0.35;
+    wg.fillStyle = 'rgba(0,0,0,0.75)';
+    wg.beginPath();
+    wg.ellipse(cx, cy+potH*0.45, potW*0.42, potH*0.14, 0, 0, Math.PI*2);
+    wg.fill();
+    wg.restore();
+
+    // body
+    const bodyG = wg.createLinearGradient(cx-potW/2, cy-potH/2, cx+potW/2, cy+potH/2);
+    bodyG.addColorStop(0,'rgba(18,18,22,0.92)');
+    bodyG.addColorStop(1,'rgba(50,50,60,0.92)');
+    wg.fillStyle = bodyG;
+    wg.strokeStyle = 'rgba(255,255,255,0.22)';
+    wg.lineWidth = 3;
+    wg.beginPath();
+    wg.roundRect(cx-potW*0.46, cy-potH*0.24, potW*0.92, potH*0.70, 26);
+    wg.fill(); wg.stroke();
+
+    // rim
+    const rimG = wg.createLinearGradient(0, cy-potH*0.25, 0, cy-potH*0.25+rimH);
+    rimG.addColorStop(0,'rgba(255,215,128,0.90)');
+    rimG.addColorStop(1,'rgba(255,215,128,0.55)');
+    wg.fillStyle = rimG;
+    wg.strokeStyle = 'rgba(255,255,255,0.35)';
+    wg.beginPath();
+    wg.roundRect(cx-potW*0.50, cy-potH*0.30, potW, rimH, 22);
+    wg.fill(); wg.stroke();
+
+    // handle
+    wg.strokeStyle = 'rgba(255,215,128,0.80)';
+    wg.lineWidth = 6;
+    wg.beginPath();
+    wg.arc(cx-potW*0.05, cy-potH*0.02, potW*0.46, Math.PI*1.05, Math.PI*1.95);
+    wg.stroke();
+
+    // coins
+    const coinCount = (overlayMode==='jackpot') ? 55 : 22;
+    for (let i=0;i<coinCount;i++){
+      const phase = (t*1.2 + i*0.17) % 1;
+      const drop = overlayMode==='jackpot' ? 1.0 : 0.75;
+      const y = lerp(H*0.06, cy-potH*0.12, phase) + Math.sin(t*3 + i)*6;
+      const x = lerp(cx-potW*0.30, cx+potW*0.24, (Math.sin(i*99.1)*0.5+0.5)) + Math.sin(t*2.2+i)*7;
+      const r = 6 + (i%5);
+      const shine = 0.55 + 0.45*Math.sin(t*6 + i);
+      wg.save();
+      wg.globalAlpha = 0.65*intensity;
+      wg.fillStyle = `rgba(255,215,128,${0.55+0.35*shine})`;
+      wg.shadowColor = 'rgba(255,215,128,0.85)';
+      wg.shadowBlur = 18;
+      wg.beginPath();
+      wg.ellipse(x, y, r*1.05, r*0.72, 0.2, 0, Math.PI*2);
+      wg.fill();
+      wg.globalAlpha = 0.22*intensity;
+      wg.fillStyle = 'rgba(255,255,255,0.95)';
+      wg.beginPath();
+      wg.ellipse(x-r*0.25, y-r*0.20, r*0.35, r*0.22, -0.4, 0, Math.PI*2);
+      wg.fill();
+      wg.restore();
+    }
+
+    // sparkle bursts
+    const sparkN = (overlayMode==='jackpot') ? 28 : 14;
+    for (let i=0;i<sparkN;i++){
+      const ang = (i/sparkN)*Math.PI*2 + t*0.8;
+      const rr = (overlayMode==='jackpot' ? W*0.18 : W*0.12) * (0.75 + 0.25*Math.sin(t*1.4+i));
+      const x = cx + Math.cos(ang)*rr;
+      const y = cy - potH*0.32 + Math.sin(ang)*rr*0.35;
+      wg.save();
+      wg.globalAlpha = (0.10 + 0.15*Math.sin(t*8+i))*intensity;
+      wg.strokeStyle = 'rgba(255,255,255,0.85)';
+      wg.lineWidth = 2.0;
+      wg.shadowColor = 'rgba(255,215,128,0.85)';
+      wg.shadowBlur = 22;
+      wg.beginPath();
+      wg.moveTo(x-10, y); wg.lineTo(x+10, y);
+      wg.moveTo(x, y-10); wg.lineTo(x, y+10);
+      wg.stroke();
+      wg.restore();
+    }
+
+    // label glow strip
+    wg.save();
+    wg.globalAlpha = 0.16*intensity;
+    const band = wg.createLinearGradient(0,0,W,H);
+    band.addColorStop(0,'rgba(127,227,255,0.0)');
+    band.addColorStop(0.5,'rgba(127,227,255,0.55)');
+    band.addColorStop(1,'rgba(255,215,128,0.0)');
+    wg.fillStyle = band;
+    wg.fillRect(0,0,W,H);
+    wg.restore();
+  }
+
+  function tickOverlay(now){
+    if (overlayTimer <= 0) return;
+    overlayTimer -= 1/60;
+    const t = now - overlayStart;
+    const intensity = (overlayMode==='jackpot') ? 1.0 : 0.85;
+    drawPotOfGold(t, intensity);
+    if (overlayTimer <= 0) hideOverlay();
+  }
+
+  // ---------- sizing ----------
+  function resizeCanvas(){
+    const cssW = c.getBoundingClientRect().width;
+    const cssH = c.getBoundingClientRect().height;
+    // keep internal res high but not insane
+    const targetW = Math.floor(clamp(cssW*1.4, 1100, 1800));
+    const targetH = Math.floor(targetW * 1000/1600);
+    if (c.width !== targetW || c.height !== targetH){
+      c.width = targetW;
+      c.height = targetH;
+      computeLayout();
+    }
+  }
+  window.addEventListener('resize', () => { resizeCanvas(); });
+
+  // ---------- UI events ----------
+  function onSpinPress(){
+    startSpin();
+  }
+  spinBtn.addEventListener('click', () => { clickSfx(); onSpinPress(); });
+  maxBtn.addEventListener('click', () => { clickSfx(); betInp.value = betInp.max; setReads(); });
+  refillBtn.addEventListener('click', () => { clickSfx(); balanceInp.value = String(readNum(balanceInp,0) + 10000); setReads(); setMsg('Refilled +10,000.', 'good'); });
+  resetBtn.addEventListener('click', () => {
+    clickSfx();
+    balanceInp.value = '1000';
+    jackpotInp.value = '25000';
+    betInp.value = '25';
+    volSel.value = 'med';
+    speedSel.value = 'cinematic';
+    autoSel.value = 'off';
+    lastWins = []; lastPayout = 0; lastGrid = null; lastWinTier='none';
+    setReads();
+    setMsg('Reset.', '');
+    status.textContent = buildStatusLine();
+  });
+
+  muteBtn.addEventListener('click', () => {
+    // user gesture - safe to init audio
+    clickSfx();
+    setMuted(!muted);
+  });
+
+  lever.addEventListener('click', () => {
+    lever.classList.add('pulled');
+    setTimeout(()=>lever.classList.remove('pulled'), 220);
+    leverSfx();
+    onSpinPress();
+  });
+
+  [balanceInp, jackpotInp, betInp, volSel, autoSel, speedSel].forEach(el => {
+    el.addEventListener('input', () => { setReads(); status.textContent = buildStatusLine(); });
+    el.addEventListener('change', () => { setReads(); status.textContent = buildStatusLine(); });
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space'){ e.preventDefault(); clickSfx(); onSpinPress(); }
+    if (e.key.toLowerCase() === 'm'){ e.preventDefault(); clickSfx(); setMuted(!muted); }
+    if (e.key.toLowerCase() === 'a'){
+      e.preventDefault(); clickSfx();
+      autoSel.value = (autoSel.value === 'on') ? 'off' : 'on';
+      setReads();
+      setMsg('Auto-spin: ' + autoSel.value.toUpperCase(), 'warn');
+      if (autoSel.value === 'on' && !isSpinning) startSpin();
+    }
+  });
+
+  // ---------- animation loop ----------
+  let lastT = performance.now()/1000;
+  function frame(){
+    const now = performance.now()/1000;
+    const dt = clamp(now - lastT, 0.0, 0.033);
+    lastT = now;
+
+    resizeCanvas();
+    setReads();
+
+    // passive jackpot climb shimmer
+    jackpotInp.value = String(readNum(jackpotInp,0) + (isSpinning ? 0 : 0.03));
+
+    // update
+    stepReels(now, dt);
+    updateParticles(dt);
+
+    // draw
+    drawBackground(now);
+    drawFace(now);
+    drawReels(now);
+    drawButtons(now);
+    drawParticles();
+    tickOverlay(now);
+    vignette(g);
+
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- boot ----------
+  renderPayTable();
+  setReads();
+  setMuted(false);
+  status.textContent = buildStatusLine();
+  setMsg('Ready. Hit SPIN.', '');
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
