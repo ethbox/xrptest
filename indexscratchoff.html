@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Gold Vault Scratch (Offline Demo)</title>
+  <style>
+    :root{
+      --bg:#07070A;
+      --panel:#0f0f14;
+      --gold1:#d7b04a;
+      --gold2:#f3d27a;
+      --gold3:#8a6a21;
+      --text:#efe8d6;
+      --muted:#a89c7b;
+      --good:#5ee38b;
+      --bad:#ff6a6a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 600px at 50% 15%, #141421 0%, var(--bg) 60%) fixed;
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      display:flex;
+      min-height:100vh;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .wrap{
+      width:min(980px, 100%);
+      display:grid;
+      gap:16px;
+      grid-template-columns: 1.2fr 0.8fr;
+    }
+    @media (max-width: 900px){
+      .wrap{grid-template-columns:1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+      overflow:hidden;
+    }
+    .head{
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.18);
+    }
+    .title{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      font-weight:800;
+      letter-spacing:0.6px;
+    }
+    .dot{
+      width:11px;height:11px;border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, var(--gold2) 0%, var(--gold1) 45%, var(--gold3) 100%);
+      box-shadow: 0 0 18px rgba(243,210,122,0.35);
+    }
+    .subtitle{font-size:12px;color:var(--muted)}
+    .stage{
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+    .ticketWrap{
+      position:relative;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.10);
+      background:
+        radial-gradient(800px 420px at 50% 0%, rgba(243,210,122,0.16), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      padding:14px;
+    }
+    .ticket{
+      width:100%;
+      aspect-ratio: 16 / 9;
+      border-radius:14px;
+      overflow:hidden;
+      position:relative;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.28), rgba(0,0,0,0.10)),
+        radial-gradient(900px 420px at 50% 10%, rgba(243,210,122,0.22), transparent 65%),
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 10px, rgba(255,255,255,0.01) 10px 20px);
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+    }
+    canvas{display:block;width:100%;height:100%}
+    .overlayGif{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      opacity:0;
+      transform: scale(1.02);
+      transition: opacity .25s ease, transform .25s ease;
+    
+      z-index: 12;
+    }
+    .overlayGif.show{
+      opacity:1;
+      transform: scale(1.00);
+    }
+    .overlayGif img{
+      width:min(520px, 92%);
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+    }
+
+    .row{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    }
+    .pill{
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(0,0,0,0.25);
+      border:1px solid rgba(255,255,255,0.10);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-width: 240px;
+    }
+    .pill b{letter-spacing:0.4px}
+    .pill small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+    .btns{display:flex; gap:10px; flex-wrap:wrap}
+    button{
+      border:0;
+      border-radius:14px;
+      padding:10px 14px;
+      font-weight:800;
+      letter-spacing:0.3px;
+      cursor:pointer;
+      color:#1a1406;
+      background: linear-gradient(180deg, var(--gold2), var(--gold1));
+      box-shadow: 0 10px 28px rgba(243,210,122,0.18);
+    }
+    button.secondary{
+      color:var(--text);
+      background: rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.10);
+      box-shadow:none;
+    }
+    button:active{transform: translateY(1px)}
+    .side{
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+    .stat{
+      border-radius:16px;
+      padding:12px 12px;
+      background: rgba(0,0,0,0.22);
+      border:1px solid rgba(255,255,255,0.08);
+    }
+    .stat .k{color:var(--muted);font-size:12px}
+    .stat .v{font-size:18px;font-weight:900;margin-top:4px;letter-spacing:0.4px}
+    .codeBox{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-weight:900;
+      font-size:20px;
+      letter-spacing:4px;
+      padding:12px 12px;
+      border-radius:14px;
+      background: linear-gradient(180deg, rgba(243,210,122,0.12), rgba(0,0,0,0.18));
+      border:1px solid rgba(243,210,122,0.22);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .hint{color:var(--muted);font-size:12px;line-height:1.45}
+    .badge{
+      font-weight:900;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.25);
+      color: var(--muted);
+    }
+    .badge.good{color:var(--good); border-color: rgba(94,227,139,0.35)}
+    .badge.bad{color:var(--bad); border-color: rgba(255,106,106,0.35)}
+    .tiny{font-size:11px;color:var(--muted)}
+    .footer{
+      padding:12px 16px;
+      border-top:1px solid rgba(255,255,255,0.08);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      background: rgba(0,0,0,0.15);
+    }
+    a{color:var(--gold2); text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div>
+          <div class="title"><span class="dot"></span> Gold Vault Scratch</div>
+          <div class="subtitle">Offline demo • scratch to reveal • win = coins drop</div>
+        </div>
+        <span class="badge" id="statusBadge">READY</span>
+      </div>
+
+      <div class="stage">
+        <div class="ticketWrap">
+          <div class="ticket" id="ticket">
+            <canvas id="c"></canvas>
+            <div id="cursorCoin" style="position:absolute; z-index: 9; left:0; top:0; width:56px; height:56px; pointer-events:none; transform: translate(-9999px,-9999px); filter: drop-shadow(0 12px 20px rgba(0,0,0,0.55)); opacity:0; transition: opacity .12s ease;">
+              <img src="coin_cursor.png" alt="" style="width:100%;height:100%;"/>
+            </div>
+            <div id="dust" style="position:absolute; z-index: 10; left:0; top:0; width:220px; height:140px; pointer-events:none; transform: translate(-9999px,-9999px); opacity:0; transition: opacity .12s ease;">
+              <img src="dust.gif" alt="" style="width:100%;height:100%;"/>
+            </div>
+
+            <div id="winAmount" style="position:absolute; z-index: 28; right:14px; top:14px; padding:10px 12px; border-radius:14px; font-weight:900; letter-spacing:0.4px; background: rgba(0,0,0,0.55); border:1px solid rgba(243,210,122,0.45); box-shadow: 0 16px 40px rgba(0,0,0,0.45); color: #ffe3a6; backdrop-filter: blur(6px); opacity:0; transform: translateY(-6px); transition: opacity .22s ease, transform .22s ease; pointer-events:none; min-width: 140px; text-align:center;"><div style="font-size:12px; color: rgba(243,210,122,0.85); margin-bottom:2px;">YOU WON</div><div id="winAmountValue" style="font-size:22px;">+$0</div></div>
+            <div id="creditToast" style="position:absolute; z-index: 30; left:50%; top:18px; transform: translate(-50%,-8px); padding:12px 14px; border-radius:16px; font-weight:900; letter-spacing:0.3px; background: rgba(0,0,0,0.68); border:1px solid rgba(243,210,122,0.55); box-shadow: 0 20px 60px rgba(0,0,0,0.55); color:#ffe3a6; backdrop-filter: blur(8px); opacity:0; pointer-events:none; transition: opacity .22s ease, transform .22s ease; text-align:center; min-width: 280px;"><span id="creditToastText">+ Credit Added $0</span></div>
+<div class="overlayGif" id="gifOverlay">
+              <img id="gifImg" alt="win animation"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="pill">
+            <div>
+              <b>Balance</b>
+              <small>Fake wallet (offline)</small>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-weight:900;font-size:18px" id="bal">$500</div>
+              <div class="tiny">per scratch: -$5</div>
+            </div>
+          </div>
+
+          <div class="pill">
+            <div>
+              <b>Result</b>
+              <small>Symbols under the foil</small>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-weight:900;font-size:18px" id="result">—</div>
+              <div class="tiny" id="payoutHint">Scratch to reveal</div>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button id="newBtn">New Ticket (-$5)</button>
+            <button class="secondary" id="resetBtn">Reset Balance</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="hint">Tip: scratch with mouse / touch. When 60% is revealed, your 9‑char <b>Ticket Code</b> spins for 1 second and locks.</div>
+        <div class="tiny">Made for your “art number generator” vibe • no network needed</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <div>
+          <div class="title"><span class="dot"></span> Ticket Code</div>
+          <div class="subtitle">9 characters • derived from the hidden seed</div>
+        </div>
+        <button class="secondary" id="copyBtn" style="padding:8px 12px">Copy</button>
+      </div>
+      <div class="side">
+        <div class="codeBox">
+          <span id="code">_________</span>
+          <span class="badge" id="verifyBadge">UNREVEALED</span>
+        </div>
+
+        <div class="stat">
+          <div class="k">Commit Hash (demo)</div>
+          <div class="v" style="font-family: ui-monospace, monospace; font-size:13px; letter-spacing:0.2px" id="commit">—</div>
+          <div class="tiny">This is the “commit” you would put on-chain later.</div>
+        </div>
+
+        <div class="stat">
+          <div class="k">Reveal Seed (demo)</div>
+          <div class="v" style="font-family: ui-monospace, monospace; font-size:13px; letter-spacing:0.2px" id="reveal">—</div>
+          <div class="tiny">After scratch completes, the seed reveals and can be verified.</div>
+        </div>
+
+        <div class="stat">
+          <div class="k">Sounds</div>
+          <div class="hint">Scratch = soft foil noise (procedural). Win = coin cascade. Jackpot = vault thump + coin rain + shimmer.</div>
+          <div class="tiny">Click/touch once to enable audio if your browser blocks it.</div>
+        </div>
+
+        <div class="stat">
+          <div class="k">Included GIFs</div>
+          <div class="hint">
+            <ul style="margin:8px 0 0 18px; padding:0; color:var(--muted);">
+              <li><b>coins_fall.gif</b> (any win)</li>
+              <li><b>you_win.gif</b> (celebration overlay)</li>
+              <li><b>jackpot_rain.gif</b> (jackpot)</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ---------- Helpers ----------
+  const $ = (id) => document.getElementById(id);
+
+  function hex(buf){
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  async function sha256(str){
+    const data = new TextEncoder().encode(str);
+    return await crypto.subtle.digest("SHA-256", data);
+  }
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+
+  // 9-char display code derived from reveal seed (safe-ish vs short seed)
+  async function makeTicketCode(seed, nonce){
+    const h = await sha256(seed + "::" + nonce);
+    // base32-ish alphabet without confusing chars
+    const ALPH = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const bytes = new Uint8Array(h);
+    let out = "";
+    // use 9 chars from hash bytes
+    for(let i=0;i<9;i++){
+      out += ALPH[ bytes[i] % ALPH.length ];
+    }
+    return out;
+  }
+
+  // ---------- Audio (procedural) ----------
+  let audioEnabled = false;
+  let ac, master, scratchNode;
+  function ensureAudio(){
+    if(audioEnabled) return;
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain();
+    master.gain.value = 0.65;
+    master.connect(ac.destination);
+    audioEnabled = true;
+  }
+
+  function playScratch(intensity=0.7){
+    if(!audioEnabled) return;
+    // short filtered noise burst that can be called repeatedly
+    const dur = 0.045;
+    const bufferSize = Math.floor(ac.sampleRate * dur);
+    const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++){
+      // pink-ish noise feel
+      const n = (Math.random()*2-1);
+      data[i] = n * (0.5 + 0.5*Math.random()) * 0.35;
+    }
+    const src = ac.createBufferSource();
+    src.buffer = buffer;
+
+    const bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 1800 + Math.random()*1200;
+    bp.Q.value = 1.2 + Math.random()*0.8;
+
+    const gain = ac.createGain();
+    gain.gain.value = 0.18 * intensity;
+
+    src.connect(bp); bp.connect(gain); gain.connect(master);
+    src.start();
+  }
+
+  function coinPing(t, freq, amp){
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.type = "triangle";
+    o.frequency.value = freq;
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(master);
+    const now = ac.currentTime + t;
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(amp, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    o.start(now);
+    o.stop(now + 0.22);
+  }
+
+  function playWinCoins(){
+    if(!audioEnabled) return;
+    // cascade pings
+    const n = 9;
+    for(let i=0;i<n;i++){
+      coinPing(i*0.05, 650 + Math.random()*700, 0.08);
+    }
+    // soft thump
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.type = "sine";
+    o.frequency.value = 90;
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(master);
+    const now = ac.currentTime;
+    g.gain.exponentialRampToValueAtTime(0.09, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    o.start(now);
+    o.stop(now + 0.2);
+  }
+
+  function playJackpot(){
+    if(!audioEnabled) return;
+    // vault thump
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(70, ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(40, ac.currentTime + 0.25);
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(master);
+    g.gain.exponentialRampToValueAtTime(0.18, ac.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.35);
+    o.start();
+    o.stop(ac.currentTime + 0.4);
+
+    // coin rain
+    for(let i=0;i<18;i++){
+      coinPing(i*0.04, 520 + Math.random()*950, 0.09);
+    }
+
+    // shimmer
+    const sh = ac.createOscillator();
+    const shg = ac.createGain();
+    sh.type = "sine";
+    sh.frequency.value = 1200;
+    sh.connect(shg); shg.connect(master);
+    shg.gain.value = 0.0001;
+    shg.gain.exponentialRampToValueAtTime(0.06, ac.currentTime + 0.02);
+    shg.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.9);
+    sh.start();
+    sh.stop(ac.currentTime + 1.0);
+  }
+
+  
+  function playLose(){
+    if(!audioEnabled) return;
+
+    // Classic TV game show LOSER sound: exaggerated "WOMP WOMP"
+    const now = ac.currentTime;
+
+    // main trombone drop
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(120, now + 0.35);
+    osc.frequency.exponentialRampToValueAtTime(70, now + 0.75);
+
+    // wobble / sadness
+    const lfo = ac.createOscillator();
+    const lfoGain = ac.createGain();
+    lfo.type = "sine";
+    lfo.frequency.value = 5.2;
+    lfoGain.gain.value = 18;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+
+    // volume envelope
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.22, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+
+    // make it warm & sad
+    const lp = ac.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 700;
+
+    osc.connect(lp);
+    lp.connect(gain);
+    gain.connect(master);
+
+    lfo.start(now);
+    osc.start(now);
+    osc.stop(now + 0.95);
+    lfo.stop(now + 0.95);
+  }
+
+
+
+  // Enable audio on first interaction
+  ["pointerdown","keydown","touchstart","mousedown"].forEach(evt=>{
+    window.addEventListener(evt, () => { ensureAudio(); }, { once:true, passive:true });
+  });
+
+  // ---------- Game state ----------
+  let balance = 500;
+  let ticketCost = 5;
+
+  const symbols = [
+    {k:"DIAMOND", emoji:"💎"},
+    {k:"GOLDBAR", emoji:"🪙"},
+    {k:"CROWN", emoji:"👑"},
+    {k:"BOLT", emoji:"⚡"},
+    {k:"VAULT", emoji:"🔒"},
+    {k:"STAR", emoji:"✶"},
+  ];
+
+  function formatMoney(n){ return "$" + n.toLocaleString("en-US"); }
+
+  function setBadge(text, cls){
+    const b = $("statusBadge");
+    b.textContent = text;
+    b.classList.remove("good","bad");
+    if(cls) b.classList.add(cls);
+  }
+
+  // ---------- Canvas scratch ticket ----------
+  const canvas = $("c");
+  const ticketEl = $("ticket");
+  const ctx = canvas.getContext("2d");
+
+  // Low-res scratch mask (reliable progress tracking across DPI/AA)
+  const maskCanvas = document.createElement("canvas");
+  const maskCtx = maskCanvas.getContext("2d");
+  // size is set in resizeCanvas()
+
+
+  let CURRENT_DPR = 1;
+
+  function resizeCanvas(){
+    const rect = ticketEl.getBoundingClientRect();
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    CURRENT_DPR = dpr;
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    // low-res mask size (fixed-ish to keep it fast)
+    maskCanvas.width = Math.floor(rect.width * 0.55);
+    maskCanvas.height = Math.floor(rect.height * 0.55);
+    // reset mask to fully covered whenever we resize
+    maskCtx.setTransform(1,0,0,1,0,0);
+    maskCtx.globalCompositeOperation = 'source-over';
+    maskCtx.fillStyle = '#000';
+    maskCtx.fillRect(0,0,maskCanvas.width,maskCanvas.height);
+    canvas.style.width = rect.width + "px";
+    canvas.style.height = rect.height + "px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener("resize", () => { resizeCanvas(); drawTicket(true); });
+
+  // Ticket content
+  let ticket = null;
+  let scratched = false;
+  let revealed = false;
+  let scratchProgress = 0;
+  let scratchEnabled = true;
+
+  function randSeed(){
+    // longer seed for safety; show later on reveal
+    const a = crypto.getRandomValues(new Uint32Array(6));
+    return [...a].map(x=>x.toString(16).padStart(8,"0")).join("");
+  }
+
+  function decideOutcome(){
+    // 70% lose, 25% win, 5% jackpot
+    const r = Math.random();
+    if(r < 0.05) return {tier:"JACKPOT", payout:250};
+    if(r < 0.30) return {tier:"WIN", payout:15 + Math.floor(Math.random()*40)}; // 15-54
+    return {tier:"LOSE", payout:0};
+  }
+
+  function makeGridForTier(tier){
+    // 3x3 grid of symbols; winners show 3-of-a-kind
+    const grid = Array.from({length:9}, () => pick(symbols));
+    if(tier === "WIN"){
+      const s = pick(symbols);
+      const idx = [0,4,8];
+      idx.forEach(i => grid[i] = s);
+    } else if(tier === "JACKPOT"){
+      const s = symbols.find(x=>x.k==="GOLDBAR") || pick(symbols);
+      // 5-of-a-kind
+      [0,2,4,6,8].forEach(i => grid[i] = s);
+    }
+    return grid;
+  }
+
+  async function newTicket(){
+    if(balance < ticketCost){
+      setBadge("LOW FUNDS", "bad");
+      return;
+    }
+    balance -= ticketCost;
+    $("bal").textContent = formatMoney(balance);
+
+    revealed = false;
+    scratched = false;
+    scratchProgress = 0;
+    $("result").textContent = "—";
+    $("payoutHint").textContent = "Scratch to reveal";
+    $("verifyBadge").textContent = "UNREVEALED";
+    $("verifyBadge").className = "badge";
+    $("code").textContent = "_________";
+    $("commit").textContent = "—";
+    $("reveal").textContent = "—";
+    setBadge("READY");
+
+    hideOverlay();
+    hideWinAmount();
+    const ct = $("creditToast");
+    if(ct){ ct.style.opacity = 0; ct.style.transform = 'translate(-50%, -8px)'; }
+
+
+    // create ticket seed + commit
+    const seed = randSeed();
+    const nonce = Date.now().toString(16);
+    const commitBuf = await sha256(seed);
+    const commit = hex(commitBuf).slice(0,44) + "…";
+    const outcome = decideOutcome();
+    const grid = makeGridForTier(outcome.tier);
+
+    ticket = { seed, nonce, commit, outcome, grid, code: null };
+    $("commit").textContent = commit;
+
+    // reset mask to fully covered
+    maskCtx.globalCompositeOperation = 'source-over';
+    maskCtx.fillStyle = '#000';
+    maskCtx.fillRect(0,0,maskCanvas.width,maskCanvas.height);
+
+    drawTicket(true);
+  }
+
+  function drawGoldFoil(x,y,w,h){
+    // gold foil with stripes + sparkles
+    const g = ctx.createLinearGradient(x,y, x+w, y+h);
+    g.addColorStop(0, "rgba(243,210,122,0.95)");
+    g.addColorStop(0.22, "rgba(215,176,74,0.92)");
+    g.addColorStop(0.50, "rgba(255,232,162,0.94)");
+    g.addColorStop(0.78, "rgba(180,140,40,0.92)");
+    g.addColorStop(1, "rgba(243,210,122,0.95)");
+    ctx.fillStyle = g;
+    ctx.fillRect(x,y,w,h);
+
+    // diagonal micro lines
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.translate(x,y);
+    ctx.rotate(-Math.PI/12);
+    for(let i=-w;i<w*2;i+=10){
+      ctx.fillStyle = i%20===0 ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)";
+      ctx.fillRect(i, -h, 6, h*3);
+    }
+    ctx.restore();
+
+    // sparkles
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    for(let i=0;i<38;i++){
+      const sx = x + Math.random()*w;
+      const sy = y + Math.random()*h;
+      ctx.fillStyle = "rgba(255,240,185,0.9)";
+      ctx.fillRect(sx, sy, 1.5, 1.5);
+    }
+    ctx.restore();
+  }
+
+  function drawTicket(freshFoil=false){
+    resizeCanvas();
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+
+    // background
+    ctx.clearRect(0,0,w,h);
+    // vault gradient
+    const bg = ctx.createRadialGradient(w*0.5, h*0.1, 10, w*0.5, h*0.4, w);
+    bg.addColorStop(0, "rgba(243,210,122,0.22)");
+    bg.addColorStop(0.55, "rgba(0,0,0,0)");
+    bg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = "rgba(0,0,0,0.10)";
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0,0,w,h);
+
+    // ticket frame
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.14)";
+    ctx.lineWidth = 2;
+    roundRect(ctx, 10, 10, w-20, h-20, 14);
+    ctx.stroke();
+    ctx.restore();
+
+    // inner content area
+    const pad = 22;
+    const innerX = pad, innerY = pad, innerW = w - pad*2, innerH = h - pad*2;
+
+    // draw symbols grid (underlay)
+    drawSymbols(innerX, innerY, innerW, innerH);
+
+    // foil overlay layer (scratchable)
+    if(freshFoil){
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      drawGoldFoil(innerX, innerY, innerW, innerH);
+      ctx.restore();
+    }
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+
+  function drawSymbols(x,y,w,h){
+    if(!ticket) return;
+    const cols=3, rows=3;
+    const gap = Math.min(w,h)*0.05;
+    const cellW = (w - gap*(cols+1))/cols;
+    const cellH = (h - gap*(rows+1))/rows;
+
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const idx = r*cols+c;
+        const sym = ticket.grid[idx];
+        const cx = x + gap + c*(cellW+gap);
+        const cy = y + gap + r*(cellH+gap);
+
+        // cell background
+        ctx.save();
+        const g = ctx.createLinearGradient(cx, cy, cx+cellW, cy+cellH);
+        g.addColorStop(0,"rgba(255,255,255,0.07)");
+        g.addColorStop(1,"rgba(0,0,0,0.20)");
+        ctx.fillStyle=g;
+        roundRect(ctx, cx, cy, cellW, cellH, 14);
+        ctx.fill();
+        ctx.strokeStyle="rgba(255,255,255,0.10)";
+        ctx.lineWidth=1.5;
+        ctx.stroke();
+        ctx.restore();
+
+        // icon
+        ctx.save();
+        const size = Math.min(cellW, cellH)*0.42;
+        ctx.font = `${Math.floor(size)}px "Apple Color Emoji","Segoe UI Emoji", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        // gold glow
+        ctx.shadowColor = "rgba(243,210,122,0.35)";
+        ctx.shadowBlur = 18;
+        ctx.fillText(sym.emoji, cx+cellW/2, cy+cellH/2 + 2);
+        ctx.restore();
+      }
+    }
+
+    // subtle label line (no text)
+    ctx.save();
+    ctx.globalAlpha = 0.25;
+    ctx.strokeStyle="rgba(243,210,122,0.30)";
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(x+6, y+h-6);
+    ctx.lineTo(x+w-6, y+h-6);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Scratch mechanics
+  let isDown = false;
+  let last = null;
+
+  function scratchAt(px, py){
+    const rect = canvas.getBoundingClientRect();
+    const x = px - rect.left;
+    const y = py - rect.top;
+
+    const pad = 22;
+    const innerX = pad, innerY = pad, innerW = rect.width - pad*2, innerH = rect.height - pad*2;
+    if(x < innerX || x > innerX+innerW || y < innerY || y > innerY+innerH) return;
+
+    // scratch visual foil (main canvas)
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath();
+    const r = 52; // brush radius (easier scratch)
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // scratch mask (low-res, reliable progress)
+    const mx = (x - innerX) / innerW * maskCanvas.width;
+    const my = (y - innerY) / innerH * maskCanvas.height;
+    const mr = r / innerW * maskCanvas.width;
+    maskCtx.save();
+    maskCtx.globalCompositeOperation = "destination-out";
+    maskCtx.beginPath();
+    maskCtx.arc(mx, my, mr, 0, Math.PI*2);
+    maskCtx.fill();
+    maskCtx.restore();
+
+    scratched = true;
+  }
+
+  function estimateScratchProgress(){
+    // compute cleared fraction from low-res mask (alpha < threshold)
+    const img = maskCtx.getImageData(0,0,maskCanvas.width,maskCanvas.height).data;
+    let cleared = 0, total = 0;
+    const stride = 8; // sample every 8th pixel
+    for(let i=3;i<img.length;i+=4*stride){
+      total++;
+      if(img[i] < 32) cleared++;
+    }
+    return cleared / Math.max(1,total);
+  }
+
+  async function revealIfDone(){
+    if(revealed || !ticket) return;
+    scratchProgress = estimateScratchProgress();
+    if(scratchProgress >= 0.45){
+      revealed = true;
+      setBadge("REVEALED", ticket.outcome.payout>0 ? "good" : "bad");
+
+      // show seed + compute code
+      $("reveal").textContent = ticket.seed.slice(0,44) + "…";
+      $("verifyBadge").textContent = "VERIFIED";
+      $("verifyBadge").className = "badge good";
+
+      // spin code for 1s
+      await spinCodeAndLock();
+
+      // payout
+      if(ticket.outcome.payout > 0){
+        balance += ticket.outcome.payout;
+        $("bal").textContent = formatMoney(balance);
+        $("result").textContent = ticket.outcome.tier === "JACKPOT" ? "JACKPOT" : "WIN";
+        $("payoutHint").textContent = "+" + formatMoney(ticket.outcome.payout);
+        showWinAmount("+" + formatMoney(ticket.outcome.payout));
+        showCreditToast("+ Credit Added " + formatMoney(ticket.outcome.payout));
+        setTimeout(()=>showCreditToast("+ Credit Added " + formatMoney(ticket.outcome.payout)), 650);
+
+        // animations + sounds
+        if(ticket.outcome.tier === "JACKPOT"){
+          showOverlay("jackpot_rain.gif");
+          playJackpot();
+          // follow up celebration
+          setTimeout(()=> showOverlay("you_win.gif"), 700);
+        }else{
+          showOverlay("coins_fall.gif");
+          playWinCoins();
+          setTimeout(()=> showOverlay("you_win.gif"), 600);
+        }
+      } else {
+        $("result").textContent = "LOSE";
+        $("payoutHint").textContent = "No prize this ticket";
+        hideWinAmount();
+        const ct2 = $("creditToast"); if(ct2){ ct2.style.opacity=0; ct2.style.transform='translate(-50%, -8px)'; }
+    const ct = $("creditToast");
+    if(ct){ ct.style.opacity = 0; ct.style.transform = 'translate(-50%, -8px)'; }
+
+        $("verifyBadge").textContent = "VERIFIED";
+        $("verifyBadge").className = "badge";
+        playLose();
+        setTimeout(()=>playLose(), 260);
+        showOverlay("better_luck_next_time.gif");
+      }
+    }
+  }
+
+  async function spinCodeAndLock(){
+    const codeEl = $("code");
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const start = performance.now();
+    return new Promise(async (resolve) => {
+      const finalCode = await makeTicketCode(ticket.seed, ticket.nonce);
+      ticket.code = finalCode;
+
+      const tick = () => {
+        const t = performance.now() - start;
+        if(t < 1000){
+          let s = "";
+          for(let i=0;i<9;i++) s += chars[Math.floor(Math.random()*chars.length)];
+          codeEl.textContent = s;
+          requestAnimationFrame(tick);
+        } else {
+          codeEl.textContent = finalCode;
+          resolve();
+        }
+      };
+      tick();
+    });
+  }
+
+  let creditToastTimer = null;
+  function showCreditToast(text){
+    const t = $("creditToast");
+    const tt = $("creditToastText");
+    if(!t || !tt) return;
+    tt.textContent = text;
+    t.style.opacity = 1;
+    t.style.transform = 'translate(-50%, 0px)';
+    if(creditToastTimer) clearTimeout(creditToastTimer);
+    creditToastTimer = setTimeout(()=>{
+      t.style.opacity = 0;
+      t.style.transform = 'translate(-50%, -8px)';
+    }, 1900);
+  }
+
+  function showWinAmount(text){
+    const wa = $("winAmount");
+    const wav = $("winAmountValue");
+    if(!wa || !wav) return;
+    wav.textContent = text;
+    wa.style.opacity = 1;
+    wa.style.transform = 'translateY(0px)';
+  }
+  function hideWinAmount(){
+    const wa = $("winAmount");
+    if(!wa) return;
+    wa.style.opacity = 0;
+    wa.style.transform = 'translateY(-6px)';
+  }
+
+  function showOverlay(gifName){
+    const wrap = $("gifOverlay");
+    const img = $("gifImg");
+    img.src = gifName + "?v=" + Date.now(); // cache-bust
+    wrap.classList.add("show");
+  }
+  function hideOverlay(){
+    $("gifOverlay").classList.remove("show");
+  }
+
+  // Pointer events
+  const cursorCoinEl = $("cursorCoin");
+  const dustEl = $("dust");
+  let lastMoveTime = 0;
+  let lastRevealCheck = 0;
+  let lastSpeed = 0;
+  function placeEl(el, clientX, clientY, w, h, opacity){
+    const rect = ticketEl.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    el.style.transform = `translate3d(${(x - w/2).toFixed(1)}px, ${(y - h/2).toFixed(1)}px, 0)`;
+    el.style.opacity = opacity;
+  }
+  function hideEl(el){ el.style.opacity = 0; }
+
+  function onDown(e){
+    ensureAudio();
+    placeEl(cursorCoinEl, e.clientX, e.clientY, 56, 56, 0.98);
+    hideEl(dustEl);
+    if(!ticket || revealed) return;
+    isDown = true;
+    last = null;
+    scratchAt(e.clientX, e.clientY);
+    playScratch(0.95);
+    // check reveal while scratching (throttled)
+    const rr = performance.now();
+    if(rr - lastRevealCheck > 160){
+      lastRevealCheck = rr;
+      revealIfDone();
+      if(!revealed){
+        const p = Math.floor(estimateScratchProgress()*100);
+        $("payoutHint").textContent = "Scratching… " + p + "%";
+      }
+    }
+
+    e.preventDefault?.();
+  }
+  function onMove(e){
+    ensureAudio();
+    // always move the coin cursor when over ticket
+    placeEl(cursorCoinEl, e.clientX, e.clientY, 56, 56, 0.95);
+
+    if(!isDown || !ticket || revealed) return;
+
+    // multi-scrub: scratch along the path (much easier)
+    if(last){
+      const dx = e.clientX - last.x;
+      const dy = e.clientY - last.y;
+      const dist = Math.hypot(dx,dy);
+      const steps = Math.max(1, Math.floor(dist / 10));
+      for(let i=0;i<=steps;i++){
+        const ix = last.x + (dx * i/steps);
+        const iy = last.y + (dy * i/steps);
+        scratchAt(ix, iy);
+      }
+
+      // dust trigger based on speed
+      const now = performance.now();
+      const dt = Math.max(8, now - lastMoveTime);
+      const speed = dist / dt; // px per ms
+      lastSpeed = speed;
+      lastMoveTime = now;
+
+      // show dust if scratching fast a lot
+      const dustOpacity = Math.min(0.95, Math.max(0, (speed - 0.35) * 2.0));
+      if(dustOpacity > 0.05){
+        // offset dust slightly upward/right like it's flying off
+        placeEl(dustEl, e.clientX + 36, e.clientY - 28, 220, 140, dustOpacity);
+      } else {
+        hideEl(dustEl);
+      }
+
+      // scratch sound cadence
+      if(dist > 10){
+        playScratch(Math.min(1.0, 0.55 + speed*0.9));
+      }
+      last = {x:e.clientX,y:e.clientY};
+    } else {
+      scratchAt(e.clientX, e.clientY);
+      last = {x:e.clientX,y:e.clientY};
+      lastMoveTime = performance.now();
+      playScratch(0.8);
+    }
+
+    // check reveal while scratching (throttled)
+    const rr = performance.now();
+    if(rr - lastRevealCheck > 160){
+      lastRevealCheck = rr;
+      revealIfDone();
+      if(!revealed){
+        const p = Math.floor(estimateScratchProgress()*100);
+        $("payoutHint").textContent = "Scratching… " + p + "%";
+      }
+    }
+
+    e.preventDefault?.();
+  }
+  function onUp(){
+    if(!isDown) return;
+    isDown = false;
+    hideEl(dustEl);
+    revealIfDone();
+  }
+
+  ticketEl.addEventListener("pointerenter", (e)=>{ cursorCoinEl.style.opacity = 0.95; });
+  ticketEl.addEventListener("pointerleave", (e)=>{ hideEl(cursorCoinEl); hideEl(dustEl); });
+
+  canvas.addEventListener("pointerdown", onDown);
+  canvas.addEventListener("pointermove", onMove);
+  ticketEl.addEventListener("pointermove", (e)=>{
+    // keep the coin following even when not scratching
+    placeEl(cursorCoinEl, e.clientX, e.clientY, 56, 56, 0.95);
+  });
+
+  window.addEventListener("pointerup", onUp);
+
+  // Buttons
+  $("newBtn").addEventListener("click", async () => {
+    ensureAudio();
+    await newTicket();
+  });
+  $("resetBtn").addEventListener("click", () => {
+    balance = 500;
+    $("bal").textContent = formatMoney(balance);
+    setBadge("READY");
+  });
+  $("copyBtn").addEventListener("click", async () => {
+    const text = $("code").textContent;
+    try{
+      await navigator.clipboard.writeText(text);
+      $("copyBtn").textContent = "Copied!";
+      setTimeout(()=> $("copyBtn").textContent = "Copy", 900);
+    }catch{
+      alert("Copy failed (browser permission). Code: " + text);
+    }
+  });
+
+  // Boot
+  resizeCanvas();
+  // Create the first ticket automatically
+  newTicket();
+})();
+</script>
+</body>
+</html>
